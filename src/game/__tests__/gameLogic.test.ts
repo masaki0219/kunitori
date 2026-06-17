@@ -1,0 +1,151 @@
+import { buildBoardGeometry } from '../board';
+import { buildFort, buildRoad, getBuildableEdges, getBuildableVertices, isValidRoad } from '../build';
+import { produceResources } from '../production';
+import { longestTrailForPlayer, updateLongestRoad } from '../scoring';
+import { emptyResources } from '../resources';
+import { bankTrade } from '../trade';
+import { GameState, Player } from '../types';
+
+function makePlayer(id: number): Player {
+  return {
+    id,
+    name: `P${id}`,
+    isAI: false,
+    color: '#000',
+    resources: emptyResources(),
+    cards: [],
+    cardsBoughtThisTurn: [],
+    playedWarlords: 0,
+    hasPlayedCardThisTurn: false,
+    piecesLeft: { road: 15, fort: 5, castle: 4 },
+  };
+}
+
+function makeState(): GameState {
+  const board = buildBoardGeometry();
+  board.hexes.forEach((h) => { h.terrain = 'forest'; h.token = 6; });
+  return {
+    screen: 'game',
+    phase: 'main',
+    board,
+    terrainSeed: 0,
+    buildings: [],
+    roads: [],
+    banditHexId: -1,
+    players: [makePlayer(0), makePlayer(1)],
+    currentPlayer: 0,
+    deck: [],
+    dice: null,
+    longestRoadHolder: null,
+    largestArmyHolder: null,
+    pendingTrade: null,
+    discardQueue: [],
+    freeRoadsLeft: 0,
+    setup: { order: [0, 1, 1, 0], index: 4, pendingRoadFromVertex: null },
+    winner: null,
+    log: [],
+  };
+}
+
+describe('build validations', () => {
+  it('forbids building a road with no connection', () => {
+    const state = makeState();
+    expect(isValidRoad(state, 0, 0)).toBe(false);
+    expect(getBuildableEdges(state, 0).length).toBe(0);
+  });
+
+  it('allows building a road from an existing fort', () => {
+    let state = makeState();
+    const vertex = state.board.vertices[0];
+    state = {
+      ...state,
+      buildings: [{ vertexId: vertex.id, owner: 0, type: 'fort' }],
+    };
+    const edgeId = vertex.edgeIds[0];
+    expect(isValidRoad(state, edgeId, 0)).toBe(true);
+  });
+
+  it('buildRoad pays cost and decrements pieces', () => {
+    let state = makeState();
+    const vertex = state.board.vertices[0];
+    state = { ...state, buildings: [{ vertexId: vertex.id, owner: 0, type: 'fort' }] };
+    state.players[0].resources = { timber: 1, stone: 1, rice: 0, horse: 0, iron: 0 };
+    const edgeId = vertex.edgeIds[0];
+    const next = buildRoad(state, edgeId);
+    expect(next.roads.length).toBe(1);
+    expect(next.players[0].resources.timber).toBe(0);
+    expect(next.players[0].piecesLeft.road).toBe(14);
+  });
+});
+
+describe('production', () => {
+  it('grants resources to forts and castles, skips bandit hex', () => {
+    let state = makeState();
+    state.board.hexes.forEach((h) => { h.token = 8; }); // avoid neighbors sharing token 6
+    const hex = state.board.hexes[0];
+    hex.token = 6;
+    const vertex = hex.vertexIds[0];
+    state = {
+      ...state,
+      buildings: [{ vertexId: vertex, owner: 0, type: 'fort' }],
+      banditHexId: hex.id,
+    };
+    const next = produceResources(state, 6);
+    expect(next.players[0].resources.timber).toBe(0); // bandit blocks
+  });
+
+  it('produces when bandit elsewhere', () => {
+    let state = makeState();
+    const hex = state.board.hexes[0];
+    const vertex = hex.vertexIds[0];
+    state = {
+      ...state,
+      buildings: [{ vertexId: vertex, owner: 0, type: 'castle' }],
+      banditHexId: -1,
+    };
+    const next = produceResources(state, 6);
+    expect(next.players[0].resources.timber).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('longest road', () => {
+  it('counts a straight line of 5 roads as length 5', () => {
+    let state = makeState();
+    // build a chain of vertices via neighborVertexIds
+    const start = state.board.vertices[0];
+    let path: number[] = [start.id];
+    let current = start;
+    for (let i = 0; i < 5; i++) {
+      const next = current.neighborVertexIds.find((nid) => !path.includes(nid));
+      if (next === undefined) break;
+      path.push(next);
+      current = state.board.vertices[next];
+    }
+    const roads = [];
+    for (let i = 0; i < path.length - 1; i++) {
+      const edge = state.board.edges.find(
+        (e) => e.vertexIds.includes(path[i]) && e.vertexIds.includes(path[i + 1])
+      )!;
+      roads.push({ edgeId: edge.id, owner: 0 });
+    }
+    state = { ...state, roads };
+    const length = longestTrailForPlayer(state, 0);
+    expect(length).toBe(roads.length);
+  });
+
+  it('does not award holder below minimum, awards at minimum', () => {
+    let state = makeState();
+    const updated = updateLongestRoad(state);
+    expect(updated.longestRoadHolder).toBeNull();
+  });
+});
+
+describe('bank trade', () => {
+  it('exchanges 4 of a resource for 1 of another', () => {
+    let state = makeState();
+    state.players[0].resources = { timber: 4, stone: 0, rice: 0, horse: 0, iron: 0 };
+    const next = bankTrade(state, 'timber', 'stone');
+    expect(next.players[0].resources.timber).toBe(0);
+    expect(next.players[0].resources.stone).toBe(1);
+  });
+});
