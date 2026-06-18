@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { resolveAIDiscards, runAISetupTurn, runAITurn } from '../ai/aiPlayer';
 import BoardView from '../components/board/BoardView';
@@ -24,6 +25,11 @@ import { useGameStore } from '../store/gameStore';
 import { aiEvaluateTrade } from '../ai/aiPlayer';
 import { useNetStore } from '../net/netStore';
 
+const TOP_RESERVE_COMPACT = 44;
+const TOP_RESERVE_RICH = 64;
+const BOTTOM_RESERVE_COMPACT = 96;
+const BOTTOM_RESERVE_RICH = 132;
+
 function setupBuildableEdges(state: ReturnType<typeof useGameStore.getState>): number[] {
   if (state.setup.pendingRoadFromVertex === null) return [];
   const vertex = state.board.vertices[state.setup.pendingRoadFromVertex];
@@ -45,7 +51,14 @@ export default function GameScreen() {
   const [devCardEffect, setDevCardEffect] = useState<{ mode: 'harvest' | 'requisition'; index: number } | null>(null);
   const aiRunning = useRef(false);
   const { width, height } = useWindowDimensions();
-  const boardSize = Math.min(height - 24, width * 0.46);
+  const insets = useSafeAreaInsets();
+  const compact = height < 600;
+  const topReserve = (compact ? TOP_RESERVE_COMPACT : TOP_RESERVE_RICH) + insets.top;
+  const bottomReserve = (compact ? BOTTOM_RESERVE_COMPACT : BOTTOM_RESERVE_RICH) + insets.bottom;
+  const boardSize = Math.min(
+    height - topReserve - bottomReserve,
+    width * (compact ? 0.62 : 0.56)
+  );
 
   const currentPlayer = state.players.find((p) => p.id === state.currentPlayer);
 
@@ -175,7 +188,7 @@ export default function GameScreen() {
         </View>
       ) : null}
 
-      <View style={styles.boardWrap}>
+      <View style={[styles.boardWrap, { top: topReserve, bottom: bottomReserve }]}>
         <BoardView
           size={boardSize}
           geo={state.board}
@@ -193,39 +206,51 @@ export default function GameScreen() {
       </View>
 
       <TopBar
-        style={styles.topBar}
+        style={[styles.topBar, { top: insets.top + SPACING.sm, left: insets.left + SPACING.md, right: insets.right + SPACING.md }]}
         onMenu={() => useGameStore.getState().goToScreen('title')}
         onRules={() => setShowRules(true)}
       />
 
-      <EventLog style={styles.eventLog} log={state.log} guideText={guideText} />
-
-      <PlayerPanel style={styles.playerRail} state={state} />
-
-      <PlayerHandPanel style={styles.handPanel} state={state} />
-
-      <DiceTray
-        style={styles.diceTray}
-        phase={state.phase}
-        dice={state.dice}
-        onRoll={() => dispatch({ t: 'rollDice' })}
-        onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
-        disabled={!isMyTurn}
+      <EventLog
+        style={[styles.eventLog, { top: topReserve, left: insets.left + SPACING.md, width: compact ? 150 : 200 }]}
+        log={state.log}
+        guideText={guideText}
+        compact={compact}
       />
 
-      <ActionBar
-        style={styles.actionDock}
-        phase={state.phase}
-        buildMode={buildMode}
-        player={currentPlayer}
-        onSetBuildMode={setBuildMode}
-        onRoll={() => dispatch({ t: 'rollDice' })}
-        onOpenTrade={() => setShowTrade(true)}
-        onOpenCard={() => setShowCards(true)}
-        onOpenRules={() => setShowRules(true)}
-        onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
-        disabled={!isMyTurn}
+      <PlayerPanel
+        style={[styles.playerRail, { top: topReserve, right: insets.right + SPACING.md, width: compact ? 140 : 168 }]}
+        state={state}
+        compact={compact}
       />
+
+      <View style={[styles.bottomBar, { left: insets.left + SPACING.sm, right: insets.right + SPACING.sm, bottom: insets.bottom + SPACING.sm }]}>
+        <PlayerHandPanel style={styles.handGroup} state={state} compact={compact} />
+
+        <DiceTray
+          style={styles.diceGroup}
+          phase={state.phase}
+          dice={state.dice}
+          onRoll={() => dispatch({ t: 'rollDice' })}
+          onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
+          disabled={!isMyTurn}
+        />
+
+        <ActionBar
+          style={styles.actionGroup}
+          phase={state.phase}
+          buildMode={buildMode}
+          player={currentPlayer}
+          onSetBuildMode={setBuildMode}
+          onRoll={() => dispatch({ t: 'rollDice' })}
+          onOpenTrade={() => setShowTrade(true)}
+          onOpenCard={() => setShowCards(true)}
+          onOpenRules={() => setShowRules(true)}
+          onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
+          disabled={!isMyTurn}
+          compact={compact}
+        />
+      </View>
 
       {showRules ? <RulesModal onClose={() => setShowRules(false)} /> : null}
 
@@ -306,13 +331,20 @@ function statusLabel(s: string) {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  boardWrap: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
-  topBar: { position: 'absolute', top: SPACING.sm, left: SPACING.md, right: SPACING.md },
-  eventLog: { position: 'absolute', top: 56, left: SPACING.md, width: 200 },
-  playerRail: { position: 'absolute', top: 56, right: SPACING.md, width: 168 },
-  handPanel: { position: 'absolute', left: SPACING.md, bottom: SPACING.md },
-  diceTray: { position: 'absolute', bottom: SPACING.md, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
-  actionDock: { position: 'absolute', right: SPACING.md, bottom: SPACING.md },
+  boardWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', justifyContent: 'center' },
+  topBar: { position: 'absolute' },
+  eventLog: { position: 'absolute' },
+  playerRail: { position: 'absolute' },
+  bottomBar: {
+    position: 'absolute',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+  },
+  handGroup: { flexShrink: 0 },
+  diceGroup: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  actionGroup: { flexShrink: 0 },
   respondOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   respondCard: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: 20, width: '50%', gap: 16, ...ELEVATION.floating },
   respondText: { ...TYPE.body, fontWeight: 'bold', textAlign: 'center', color: PALETTE.ink },

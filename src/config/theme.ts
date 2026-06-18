@@ -28,6 +28,15 @@ export const RESOURCE_GRADIENTS: Record<ResourceType, { top: string; bottom: str
   iron:   { top: '#6B7680', bottom: '#434C54' },
 };
 
+// ---- 資源カード色（base/deep。UI_07 §6 のミニカード用）----
+export const RESOURCE_COLORS: Record<ResourceType, { base: string; deep: string }> = {
+  timber: { base: '#3E7D4F', deep: '#27583A' },
+  stone:  { base: '#A9A29B', deep: '#7C736B' },
+  rice:   { base: '#E0B450', deep: '#B98A2E' },
+  horse:  { base: '#C49A6C', deep: '#9A7444' },
+  iron:   { base: '#5C6470', deep: '#3C434E' },
+};
+
 // ---- タイポ ----
 export const TYPE = {
   display: { fontSize: 30, fontWeight: '800' as const },

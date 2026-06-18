@@ -21,6 +21,7 @@ interface Props {
   onOpenRules: () => void;
   onEndTurn: () => void;
   disabled?: boolean;
+  compact?: boolean;
 }
 
 // サイコロ/ルール/手番終了は TopBar・DiceTray が担当する。
@@ -34,6 +35,7 @@ export default function ActionBar({
   onOpenTrade,
   onOpenCard,
   disabled,
+  compact,
 }: Props) {
   if (phase !== 'main') return null;
 
@@ -45,7 +47,7 @@ export default function ActionBar({
   const canBuyCard = canAfford(player.resources, COSTS.card);
 
   return (
-    <View style={[styles.dock, style]}>
+    <View style={[styles.dock, compact && styles.dockCompact, style]}>
       <BuildButton
         icon="road-variant"
         label="街道"
@@ -55,6 +57,7 @@ export default function ActionBar({
         left={player.piecesLeft.road}
         limit={PIECE_LIMITS.road}
         disabled={disabled}
+        compact={compact}
         onPress={() => toggle('road')}
       />
       <BuildButton
@@ -66,6 +69,7 @@ export default function ActionBar({
         left={player.piecesLeft.fort}
         limit={PIECE_LIMITS.fort}
         disabled={disabled}
+        compact={compact}
         onPress={() => toggle('fort')}
       />
       <BuildButton
@@ -77,10 +81,11 @@ export default function ActionBar({
         left={player.piecesLeft.castle}
         limit={PIECE_LIMITS.castle}
         disabled={disabled}
+        compact={compact}
         onPress={() => toggle('castle')}
       />
-      <Pressable style={styles.btn} onPress={onOpenTrade} disabled={disabled}>
-        <MaterialCommunityIcons name="swap-horizontal" size={20} color={PALETTE.ink} />
+      <Pressable style={[styles.btn, compact && styles.btnCompact]} onPress={onOpenTrade} disabled={disabled}>
+        <MaterialCommunityIcons name="swap-horizontal" size={compact ? 16 : 20} color={PALETTE.ink} />
         <Text style={styles.btnLabel}>交易</Text>
       </Pressable>
       <BuildButton
@@ -90,6 +95,7 @@ export default function ActionBar({
         active={false}
         affordable={canBuyCard}
         disabled={disabled}
+        compact={compact}
         onPress={onOpenCard}
       />
     </View>
@@ -105,21 +111,22 @@ interface BuildButtonProps {
   left?: number;
   limit?: number;
   disabled?: boolean;
+  compact?: boolean;
   onPress: () => void;
 }
 
-function BuildButton({ icon, label, cost, active, affordable, left, limit, disabled, onPress }: BuildButtonProps) {
+function BuildButton({ icon, label, cost, active, affordable, left, limit, disabled, compact, onPress }: BuildButtonProps) {
   const outOfStock = left !== undefined && left <= 0;
   return (
     <Pressable
-      style={[styles.btn, active && styles.btnActive, !affordable && styles.btnInsufficient]}
+      style={[styles.btn, compact && styles.btnCompact, active && styles.btnActive, !affordable && styles.btnInsufficient]}
       onPress={onPress}
       disabled={disabled}
     >
-      <MaterialCommunityIcons name={icon} size={20} color={active ? PALETTE.wood900 : PALETTE.ink} />
+      <MaterialCommunityIcons name={icon} size={compact ? 16 : 20} color={active ? PALETTE.wood900 : PALETTE.ink} />
       <Text style={[styles.btnLabel, active && styles.btnLabelActive]}>{label}</Text>
       <Text style={[styles.costText, !affordable && styles.costTextInsufficient]}>{cost}</Text>
-      {left !== undefined ? (
+      {left !== undefined && !compact ? (
         <Text style={[styles.stockText, outOfStock && styles.costTextInsufficient]}>残り{left}/{limit}</Text>
       ) : null}
     </Pressable>
@@ -128,11 +135,13 @@ function BuildButton({ icon, label, cost, active, affordable, left, limit, disab
 
 const styles = StyleSheet.create({
   dock: { flexDirection: 'row', gap: SPACING.sm },
+  dockCompact: { gap: SPACING.xs },
   btn: {
     paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.md,
     backgroundColor: PALETTE.washi, alignItems: 'center', minWidth: 62,
     ...ELEVATION.card,
   },
+  btnCompact: { paddingVertical: SPACING.xs, paddingHorizontal: SPACING.xs, minWidth: 46 },
   btnActive: { backgroundColor: PALETTE.gold },
   btnInsufficient: { borderWidth: 1, borderColor: PALETTE.vermilion },
   btnLabel: { ...TYPE.label, color: PALETTE.ink, marginTop: 2 },

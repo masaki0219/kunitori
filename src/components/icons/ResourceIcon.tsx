@@ -1,7 +1,8 @@
 import React from 'react';
-import Svg, { Circle, Defs, Line, LinearGradient, Path, Polygon, Rect, Stop, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, ClipPath, Defs, Image as SvgImage, Line, LinearGradient, Path, Polygon, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { RESOURCE_GRADIENTS, PALETTE } from '../../config/theme';
 import { RESOURCE_LABELS } from '../../config/labels';
+import { RESOURCE_IMAGES } from '../../config/assets';
 import { ResourceType } from '../../game/types';
 
 function Motif({ resource, w, h }: { resource: ResourceType; w: number; h: number }) {
@@ -63,6 +64,8 @@ export default function ResourceIcon({ resource, size = 28, count }: {
   const w = size, h = size * 1.4, r = size * 0.18;
   const g = RESOURCE_GRADIENTS[resource];
   const id = `res-${resource}-${size}`;
+  const clipId = `${id}-clip`;
+  const image = RESOURCE_IMAGES[resource];
   return (
     <Svg width={w} height={h + (count !== undefined ? 0 : 0)} viewBox={`0 0 ${w} ${h}`}>
       <Defs>
@@ -70,9 +73,16 @@ export default function ResourceIcon({ resource, size = 28, count }: {
           <Stop offset="0" stopColor={g.top} />
           <Stop offset="1" stopColor={g.bottom} />
         </LinearGradient>
+        <ClipPath id={clipId}>
+          <Rect x={1} y={1} width={w - 2} height={h - 2} rx={r} />
+        </ClipPath>
       </Defs>
       <Rect x={1} y={1} width={w - 2} height={h - 2} rx={r} fill={`url(#${id})`} stroke={PALETTE.ink} strokeWidth={1} />
-      <Motif resource={resource} w={w} h={h} />
+      {image ? (
+        <SvgImage x={1} y={1} width={w - 2} height={h - 2} href={image} clipPath={`url(#${clipId})`} preserveAspectRatio="xMidYMid slice" />
+      ) : (
+        <Motif resource={resource} w={w} h={h} />
+      )}
       <SvgText x={w / 2} y={h * 0.78} fill="#fff" fontSize={size * 0.42} fontWeight="800" textAnchor="middle">
         {RESOURCE_LABELS[resource]}
       </SvgText>

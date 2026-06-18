@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import GameScreen from './src/screens/GameScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import JoinRoomScreen from './src/screens/JoinRoomScreen';
@@ -38,10 +39,12 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {content}
-      <StatusBar style="auto" />
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <View style={styles.container}>
+        {content}
+        <StatusBar style="auto" />
+      </View>
+    </SafeAreaProvider>
   );
 }
 

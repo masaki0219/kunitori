@@ -3,12 +3,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { GameState, ResourceType } from '../../game/types';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER } from '../../config/theme';
+import { AVATAR_IMAGES } from '../../config/assets';
+import Avatar from '../icons/Avatar';
 import ResourceIcon from '../icons/ResourceIcon';
 import Vp from '../icons/Vp';
 
 interface Props {
   state: GameState;
   style?: StyleProp<ViewStyle>;
+  compact?: boolean;
 }
 
 const ORDER: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
@@ -22,31 +25,35 @@ function visiblePoints(state: GameState, id: number): number {
   return forts * 1 + castles * 2 + lr + la;
 }
 
-export default function PlayerPanel({ state, style }: Props) {
+export default function PlayerPanel({ state, style, compact }: Props) {
   const opponents = state.players.filter((p) => p.id !== state.currentPlayer);
+  const avatarSize = compact ? 22 : 28;
+  const iconSize = compact ? 14 : 16;
 
   return (
     <View style={[styles.rail, style]}>
       {opponents.map((p) => {
         const isTurn = p.id === state.currentPlayer;
+        const hasLongestRoad = state.longestRoadHolder === p.id;
+        const hasLargestArmy = state.largestArmyHolder === p.id;
         return (
-          <View key={p.id} style={[styles.card, isTurn && styles.cardActive]}>
+          <View key={p.id} style={[styles.card, { borderLeftColor: p.color }, isTurn && styles.cardActive, compact && styles.cardCompact]}>
             <View style={styles.header}>
-              <View style={[styles.avatar, { backgroundColor: p.color }]}>
-                <Text style={styles.avatarText}>{p.name.slice(0, 1)}</Text>
-              </View>
+              <Avatar color={p.color} letter={p.name.slice(0, 1)} size={avatarSize} image={AVATAR_IMAGES[p.id] ?? null} />
               <Text style={styles.name} numberOfLines={1}>{p.name}{p.isAI ? '(AI)' : ''}</Text>
+              {hasLongestRoad ? <Text style={styles.badge}>🚩</Text> : null}
+              {hasLargestArmy ? <Text style={styles.badge}>⚔</Text> : null}
             </View>
             <View style={styles.scoreRow}>
-              <Vp size={13} />
+              <Vp size={compact ? 11 : 13} />
               <Text style={styles.scoreText}>{visiblePoints(state, p.id)}</Text>
-              <Ionicons name="star" size={12} color={PALETTE.gold} style={{ marginLeft: SPACING.sm }} />
+              <Ionicons name="star" size={compact ? 10 : 12} color={PALETTE.gold} style={{ marginLeft: SPACING.sm }} />
               <Text style={styles.scoreText}>{p.cards.length}</Text>
             </View>
             <View style={styles.resGrid}>
               {ORDER.map((r) => (
                 <View key={r} style={styles.resItem}>
-                  <ResourceIcon resource={r} size={16} />
+                  <ResourceIcon resource={r} size={iconSize} />
                   <Text style={styles.resCount}>{p.resources[r]}</Text>
                 </View>
               ))}
@@ -62,13 +69,14 @@ const styles = StyleSheet.create({
   rail: { gap: SPACING.sm },
   card: {
     backgroundColor: PALETTE.washi, borderRadius: RADIUS.md, padding: SPACING.sm,
+    borderLeftWidth: BORDER.thick,
     ...ELEVATION.card,
   },
-  cardActive: { borderColor: PALETTE.gold, borderWidth: BORDER.thick },
+  cardCompact: { padding: SPACING.xs },
+  cardActive: { borderColor: PALETTE.gold, borderWidth: BORDER.thin },
   header: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
-  avatar: { width: 28, height: 28, borderRadius: RADIUS.pill, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#fff', fontWeight: '800', fontSize: 12 },
   name: { ...TYPE.label, color: PALETTE.ink, flexShrink: 1 },
+  badge: { fontSize: 11 },
   scoreRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 3 },
   scoreText: { ...TYPE.caption, color: PALETTE.ink },
   resGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4, gap: 4 },

@@ -1,8 +1,9 @@
 import React from 'react';
-import { Circle, Polygon, Text as SvgText } from 'react-native-svg';
-import { hexCorners } from '../../game/board';
+import { Circle, ClipPath, Defs, Image as SvgImage, Polygon, Text as SvgText } from 'react-native-svg';
+import { hexCorners, HEX_SIZE } from '../../game/board';
 import { Hex } from '../../game/types';
 import { PALETTE } from '../../config/theme';
+import { TERRAIN_IMAGES } from '../../config/assets';
 import Pips from '../icons/Pips';
 import TerrainMotif from '../icons/TerrainMotif';
 
@@ -17,6 +18,8 @@ export default function HexTile({ hex, onPress, selectable }: Props) {
   const points = corners.map((c) => `${c.x},${c.y}`).join(' ');
   const isRedNumber = hex.token === 6 || hex.token === 8;
   const { x: cx, y: cy } = hex.center;
+  const image = TERRAIN_IMAGES[hex.terrain];
+  const clipId = `hexclip-${hex.id}`;
 
   return (
     <>
@@ -29,7 +32,26 @@ export default function HexTile({ hex, onPress, selectable }: Props) {
         onPress={selectable && onPress ? () => onPress(hex.id) : undefined}
         opacity={selectable ? 0.85 : 1}
       />
-      <TerrainMotif terrain={hex.terrain} cx={cx} cy={cy} />
+      {image ? (
+        <>
+          <Defs>
+            <ClipPath id={clipId}>
+              <Polygon points={points} />
+            </ClipPath>
+          </Defs>
+          <SvgImage
+            x={cx - HEX_SIZE}
+            y={cy - HEX_SIZE}
+            width={HEX_SIZE * 2}
+            height={HEX_SIZE * 2}
+            href={image}
+            clipPath={`url(#${clipId})`}
+            preserveAspectRatio="xMidYMid slice"
+          />
+        </>
+      ) : (
+        <TerrainMotif terrain={hex.terrain} cx={cx} cy={cy} />
+      )}
       {selectable ? (
         <Polygon
           points={points}
