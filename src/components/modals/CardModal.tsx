@@ -5,6 +5,7 @@ import { CARD_DESCRIPTIONS, CARD_LABELS } from '../../config/labels';
 import { canPlayCard } from '../../game/cards';
 import { canAfford } from '../../game/resources';
 import { CardType, GameState } from '../../game/types';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
 interface Props {
   state: GameState;
@@ -55,16 +56,16 @@ export default function CardModal({ state, onBuy, onPlay, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, width: '90%', maxHeight: '80%' },
-  title: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
-  buyButton: { backgroundColor: '#07814E', borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
-  buyText: { color: '#fff', fontWeight: 'bold' },
-  disabled: { backgroundColor: '#ccc' },
-  cardRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderColor: '#eee', gap: 8 },
-  cardName: { fontWeight: 'bold' },
-  cardDesc: { fontSize: 11, color: '#666' },
-  useButton: { backgroundColor: '#C2541A', borderRadius: 6, paddingVertical: 8, paddingHorizontal: 12 },
+  overlay: { flex: 1, backgroundColor: 'rgba(36,23,16,0.6)', justifyContent: 'center', alignItems: 'center' },
+  card: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: SPACING.lg, width: '90%', maxHeight: '80%', ...ELEVATION.floating },
+  title: { ...TYPE.h2, color: PALETTE.ink, marginBottom: SPACING.sm },
+  buyButton: { backgroundColor: PALETTE.goldLight, borderRadius: RADIUS.md, paddingVertical: SPACING.md, alignItems: 'center' },
+  buyText: { color: PALETTE.wood900, fontWeight: 'bold' },
+  disabled: { backgroundColor: PALETTE.washiDark },
+  cardRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.sm, borderBottomWidth: 1, borderColor: PALETTE.washiDark, gap: 8 },
+  cardName: { fontWeight: 'bold', color: PALETTE.ink },
+  cardDesc: { fontSize: 11, color: PALETTE.inkSoft },
+  useButton: { backgroundColor: PALETTE.vermilion, borderRadius: RADIUS.sm, paddingVertical: 8, paddingHorizontal: 12 },
   useText: { color: '#fff', fontWeight: 'bold' },
-  closeButton: { alignItems: 'center', marginTop: 8, padding: 8 },
+  closeButton: { alignItems: 'center', marginTop: SPACING.sm, padding: SPACING.sm },
 });

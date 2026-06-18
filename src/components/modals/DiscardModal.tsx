@@ -3,6 +3,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { RESOURCE_LABELS } from '../../config/labels';
 import { countResources } from '../../game/resources';
 import { Player, ResourceType } from '../../game/types';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
 interface Props {
   player: Player;
@@ -55,15 +56,15 @@ export default function DiscardModal({ player, onConfirm }: Props) {
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 20, width: '85%', gap: 8 },
-  title: { fontSize: 16, fontWeight: 'bold' },
-  sub: { fontSize: 12, color: '#666', marginBottom: 8 },
+  overlay: { flex: 1, backgroundColor: 'rgba(36,23,16,0.6)', justifyContent: 'center', alignItems: 'center' },
+  card: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: SPACING.xl, width: '85%', gap: 8, ...ELEVATION.floating },
+  title: { ...TYPE.h2, color: PALETTE.ink },
+  sub: { fontSize: 12, color: PALETTE.inkSoft, marginBottom: SPACING.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'space-between' },
-  label: { flex: 1, fontSize: 13 },
-  smallButton: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#eee', alignItems: 'center', justifyContent: 'center' },
-  count: { width: 24, textAlign: 'center', fontWeight: 'bold' },
-  confirmButton: { backgroundColor: '#07814E', borderRadius: 8, paddingVertical: 12, alignItems: 'center', marginTop: 12 },
-  confirmDisabled: { backgroundColor: '#ccc' },
-  confirmText: { color: '#fff', fontWeight: 'bold' },
+  label: { flex: 1, fontSize: 13, color: PALETTE.ink },
+  smallButton: { width: 28, height: 28, borderRadius: 14, backgroundColor: PALETTE.washiDark, alignItems: 'center', justifyContent: 'center' },
+  count: { width: 24, textAlign: 'center', fontWeight: 'bold', color: PALETTE.ink },
+  confirmButton: { backgroundColor: PALETTE.goldLight, borderRadius: RADIUS.md, paddingVertical: SPACING.md, alignItems: 'center', marginTop: SPACING.md },
+  confirmDisabled: { backgroundColor: PALETTE.washiDark },
+  confirmText: { color: PALETTE.wood900, fontWeight: 'bold' },
 });

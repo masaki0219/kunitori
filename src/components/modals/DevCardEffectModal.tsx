@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { RESOURCE_LABELS } from '../../config/labels';
 import { ResourceType } from '../../game/types';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
 interface Props {
   mode: 'harvest' | 'requisition';
@@ -70,14 +71,14 @@ export default function DevCardEffectModal({ mode, onConfirmHarvest, onConfirmRe
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 20, width: '85%', gap: 8 },
-  title: { fontSize: 15, fontWeight: 'bold' },
-  sub: { fontSize: 12, color: '#666' },
+  overlay: { flex: 1, backgroundColor: 'rgba(36,23,16,0.6)', justifyContent: 'center', alignItems: 'center' },
+  card: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: SPACING.xl, width: '85%', gap: 8, ...ELEVATION.floating },
+  title: { ...TYPE.h2, color: PALETTE.ink },
+  sub: { fontSize: 12, color: PALETTE.inkSoft },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6, backgroundColor: '#eee' },
-  confirmButton: { backgroundColor: '#07814E', borderRadius: 8, paddingVertical: 12, alignItems: 'center', marginTop: 8 },
-  disabled: { backgroundColor: '#ccc' },
-  confirmText: { color: '#fff', fontWeight: 'bold' },
+  chip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: RADIUS.sm, backgroundColor: PALETTE.washiDark },
+  confirmButton: { backgroundColor: PALETTE.goldLight, borderRadius: RADIUS.md, paddingVertical: SPACING.md, alignItems: 'center', marginTop: SPACING.sm },
+  disabled: { backgroundColor: PALETTE.washiDark },
+  confirmText: { color: PALETTE.wood900, fontWeight: 'bold' },
   closeButton: { alignItems: 'center', marginTop: 4, padding: 6 },
 });

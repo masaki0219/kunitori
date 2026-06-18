@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { BRANDING } from '../config/branding';
-import { COLORS } from '../config/labels';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../config/theme';
 import { useGameStore } from '../store/gameStore';
 
 export default function TitleScreen() {
@@ -9,6 +10,7 @@ export default function TitleScreen() {
 
   return (
     <View style={styles.container}>
+      <LinearGradient colors={[PALETTE.wood500, PALETTE.wood900]} style={StyleSheet.absoluteFill} />
       <Text style={styles.title}>{BRANDING.appName}</Text>
       <Text style={styles.subtitle}>戦国・領地拡大ゲーム</Text>
       <Pressable style={styles.button} onPress={() => goToScreen('home')}>
@@ -19,9 +21,13 @@ export default function TitleScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  title: { fontSize: 32, fontWeight: 'bold', color: COLORS.brandGreen },
-  subtitle: { fontSize: 14, color: '#555', marginBottom: 24 },
-  button: { backgroundColor: COLORS.orange, paddingVertical: 14, paddingHorizontal: 32, borderRadius: 8 },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.md },
+  title: { ...TYPE.display, color: PALETTE.gold },
+  subtitle: { ...TYPE.body, color: PALETTE.washiDark, marginBottom: SPACING.xl },
+  button: {
+    backgroundColor: PALETTE.goldLight, borderColor: PALETTE.goldDark, borderWidth: 1,
+    paddingVertical: SPACING.lg, paddingHorizontal: SPACING.xxl, borderRadius: RADIUS.md,
+    ...ELEVATION.floating,
+  },
+  buttonText: { ...TYPE.h1, color: PALETTE.wood900 },
 });

@@ -1,17 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { resolveAIDiscards, runAISetupTurn, runAITurn } from '../ai/aiPlayer';
 import BoardView from '../components/board/BoardView';
 import ActionBar, { BuildMode } from '../components/Hud/ActionBar';
-import DiceDisplay from '../components/Hud/DiceDisplay';
+import DiceTray from '../components/Hud/DiceTray';
+import EventLog from '../components/Hud/EventLog';
+import PlayerHandPanel from '../components/Hud/PlayerHandPanel';
 import PlayerPanel from '../components/Hud/PlayerPanel';
-import ResourceBar from '../components/Hud/ResourceBar';
+import TopBar from '../components/Hud/TopBar';
 import CardModal from '../components/modals/CardModal';
 import DevCardEffectModal from '../components/modals/DevCardEffectModal';
 import DiscardModal from '../components/modals/DiscardModal';
 import RulesModal from '../components/modals/RulesModal';
 import StealTargetModal from '../components/modals/StealTargetModal';
 import TradeModal from '../components/modals/TradeModal';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../config/theme';
 import { playersAdjacentToHex } from '../game/board';
 import { getBuildableEdges, getBuildableVertices } from '../game/build';
 import { isValidSetupFort } from '../game/setup';
@@ -40,6 +44,8 @@ export default function GameScreen() {
   const [showRules, setShowRules] = useState(false);
   const [devCardEffect, setDevCardEffect] = useState<{ mode: 'harvest' | 'requisition'; index: number } | null>(null);
   const aiRunning = useRef(false);
+  const { width, height } = useWindowDimensions();
+  const boardSize = Math.min(height - 24, width * 0.46);
 
   const currentPlayer = state.players.find((p) => p.id === state.currentPlayer);
 
@@ -155,7 +161,9 @@ export default function GameScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.root}>
+      <LinearGradient colors={[PALETTE.wood500, PALETTE.wood900]} style={StyleSheet.absoluteFill} />
+
       {showWaiting ? (
         <View style={styles.turnBanner}>
           <Text style={styles.turnBannerText}>{turnName} のターンです</Text>
@@ -166,9 +174,10 @@ export default function GameScreen() {
           <Text style={styles.netBannerText}>通信状態: {statusLabel(status)}（再接続を試みています）</Text>
         </View>
       ) : null}
-      <PlayerPanel state={state} />
+
       <View style={styles.boardWrap}>
         <BoardView
+          size={boardSize}
           geo={state.board}
           buildings={state.buildings}
           roads={state.roads}
@@ -183,17 +192,29 @@ export default function GameScreen() {
         />
       </View>
 
-      <Text style={styles.guide}>{guideText}</Text>
-      <DiceDisplay dice={state.dice} />
-      <ResourceBar resources={currentPlayer.resources} />
+      <TopBar
+        style={styles.topBar}
+        onMenu={() => useGameStore.getState().goToScreen('title')}
+        onRules={() => setShowRules(true)}
+      />
 
-      <ScrollView style={styles.log} horizontal={false}>
-        {state.log.slice(-5).map((l, i) => (
-          <Text key={i} style={styles.logLine}>{l}</Text>
-        ))}
-      </ScrollView>
+      <EventLog style={styles.eventLog} log={state.log} guideText={guideText} />
+
+      <PlayerPanel style={styles.playerRail} state={state} />
+
+      <PlayerHandPanel style={styles.handPanel} state={state} />
+
+      <DiceTray
+        style={styles.diceTray}
+        phase={state.phase}
+        dice={state.dice}
+        onRoll={() => dispatch({ t: 'rollDice' })}
+        onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
+        disabled={!isMyTurn}
+      />
 
       <ActionBar
+        style={styles.actionDock}
         phase={state.phase}
         buildMode={buildMode}
         player={currentPlayer}
@@ -284,19 +305,22 @@ function statusLabel(s: string) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAF7F0' },
-  boardWrap: { alignItems: 'center' },
-  guide: { textAlign: 'center', fontSize: 13, color: '#444', paddingVertical: 4 },
-  log: { maxHeight: 60, paddingHorizontal: 12 },
-  logLine: { fontSize: 11, color: '#777' },
+  root: { flex: 1 },
+  boardWrap: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
+  topBar: { position: 'absolute', top: SPACING.sm, left: SPACING.md, right: SPACING.md },
+  eventLog: { position: 'absolute', top: 56, left: SPACING.md, width: 200 },
+  playerRail: { position: 'absolute', top: 56, right: SPACING.md, width: 168 },
+  handPanel: { position: 'absolute', left: SPACING.md, bottom: SPACING.md },
+  diceTray: { position: 'absolute', bottom: SPACING.md, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
+  actionDock: { position: 'absolute', right: SPACING.md, bottom: SPACING.md },
   respondOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-  respondCard: { backgroundColor: '#fff', borderRadius: 12, padding: 20, width: '80%', gap: 16 },
-  respondText: { fontSize: 14, fontWeight: 'bold', textAlign: 'center' },
+  respondCard: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: 20, width: '50%', gap: 16, ...ELEVATION.floating },
+  respondText: { ...TYPE.body, fontWeight: 'bold', textAlign: 'center', color: PALETTE.ink },
   respondRow: { flexDirection: 'row', justifyContent: 'space-around' },
-  respondAccept: { color: '#07814E', fontWeight: 'bold', fontSize: 16 },
-  respondReject: { color: '#C0392B', fontWeight: 'bold', fontSize: 16 },
-  turnBanner: { backgroundColor: 'rgba(7,129,78,0.12)', paddingVertical: 6, alignItems: 'center' },
-  turnBannerText: { color: '#07814E', fontWeight: 'bold' },
-  netBanner: { backgroundColor: '#FBE9E7', paddingVertical: 6, alignItems: 'center' },
+  respondAccept: { color: PALETTE.brandGreen, fontWeight: 'bold', fontSize: 16 },
+  respondReject: { color: PALETTE.vermilion, fontWeight: 'bold', fontSize: 16 },
+  turnBanner: { position: 'absolute', top: SPACING.sm, alignSelf: 'center', backgroundColor: 'rgba(7,129,78,0.85)', paddingVertical: 6, paddingHorizontal: SPACING.md, borderRadius: RADIUS.md, zIndex: 5 },
+  turnBannerText: { color: '#fff', fontWeight: 'bold' },
+  netBanner: { position: 'absolute', top: SPACING.sm, alignSelf: 'center', backgroundColor: '#FBE9E7', paddingVertical: 6, paddingHorizontal: SPACING.md, borderRadius: RADIUS.md, zIndex: 5 },
   netBannerText: { color: '#C0392B', fontSize: 12 },
 });

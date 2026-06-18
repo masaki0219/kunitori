@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Player, PlayerId } from '../../game/types';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER } from '../../config/theme';
 
 interface Props {
   candidates: Player[];
@@ -25,9 +26,9 @@ export default function StealTargetModal({ candidates, onSelect }: Props) {
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 20, width: '80%', gap: 10 },
-  title: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
-  row: { borderWidth: 2, borderRadius: 8, paddingVertical: 10, alignItems: 'center' },
-  name: { fontWeight: 'bold' },
+  overlay: { flex: 1, backgroundColor: 'rgba(36,23,16,0.6)', justifyContent: 'center', alignItems: 'center' },
+  card: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: SPACING.xl, width: '80%', gap: 10, ...ELEVATION.floating },
+  title: { ...TYPE.h2, color: PALETTE.ink, marginBottom: SPACING.sm },
+  row: { borderWidth: BORDER.thick, borderRadius: RADIUS.md, paddingVertical: SPACING.sm, alignItems: 'center' },
+  name: { fontWeight: 'bold', color: PALETTE.ink },
 });

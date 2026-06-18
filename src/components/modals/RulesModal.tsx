@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { CARD_DESCRIPTIONS, CARD_LABELS, formatCost, RESOURCE_LABELS, TERRAIN_LABELS } from '../../config/labels';
 import { BANK_TRADE_RATE, COSTS, HAND_LIMIT_FOR_DISCARD, LARGEST_ARMY_MIN, LONGEST_ROAD_MIN, PIECE_LIMITS, POINTS, WIN_POINTS } from '../../config/rules';
 import { CardType } from '../../game/types';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
 interface Props {
   onClose: () => void;
@@ -93,12 +94,12 @@ function Line({ children }: { children: React.ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, width: '92%', maxHeight: '85%' },
-  title: { fontSize: 18, fontWeight: 'bold' },
+  overlay: { flex: 1, backgroundColor: 'rgba(36,23,16,0.6)', justifyContent: 'center', alignItems: 'center' },
+  card: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: SPACING.lg, width: '92%', maxHeight: '85%', ...ELEVATION.floating },
+  title: { ...TYPE.h1, color: PALETTE.ink },
   section: { marginBottom: 14 },
-  sectionTitle: { fontSize: 13, fontWeight: 'bold', color: '#07814E', marginBottom: 4 },
-  line: { fontSize: 13, color: '#333', marginBottom: 3, lineHeight: 18 },
-  closeButton: { alignItems: 'center', marginTop: 8, padding: 10, backgroundColor: '#07814E', borderRadius: 8 },
-  closeText: { color: '#fff', fontWeight: 'bold' },
+  sectionTitle: { ...TYPE.label, color: PALETTE.gold, marginBottom: 4 },
+  line: { fontSize: 13, color: PALETTE.inkSoft, marginBottom: 3, lineHeight: 18 },
+  closeButton: { alignItems: 'center', marginTop: SPACING.sm, padding: SPACING.sm, backgroundColor: PALETTE.goldLight, borderRadius: RADIUS.md },
+  closeText: { color: PALETTE.wood900, fontWeight: 'bold' },
 });

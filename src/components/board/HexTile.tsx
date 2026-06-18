@@ -1,8 +1,10 @@
 import React from 'react';
 import { Circle, Polygon, Text as SvgText } from 'react-native-svg';
-import { TERRAIN_COLORS } from '../../config/labels';
 import { hexCorners } from '../../game/board';
 import { Hex } from '../../game/types';
+import { PALETTE } from '../../config/theme';
+import Pips from '../icons/Pips';
+import TerrainMotif from '../icons/TerrainMotif';
 
 interface Props {
   hex: Hex;
@@ -14,33 +16,46 @@ export default function HexTile({ hex, onPress, selectable }: Props) {
   const corners = hexCorners(hex.center);
   const points = corners.map((c) => `${c.x},${c.y}`).join(' ');
   const isRedNumber = hex.token === 6 || hex.token === 8;
+  const { x: cx, y: cy } = hex.center;
 
   return (
     <>
       <Polygon
         points={points}
-        fill={TERRAIN_COLORS[hex.terrain]}
-        stroke="#3a2f1f"
-        strokeWidth={1.5}
+        fill={`url(#grad-${hex.terrain})`}
+        stroke={PALETTE.wood700}
+        strokeWidth={2}
+        strokeLinejoin="round"
         onPress={selectable && onPress ? () => onPress(hex.id) : undefined}
         opacity={selectable ? 0.85 : 1}
       />
+      <TerrainMotif terrain={hex.terrain} cx={cx} cy={cy} />
       {selectable ? (
-        <Polygon points={points} fill="#FFD700" opacity={0.25} onPress={onPress ? () => onPress(hex.id) : undefined} />
+        <Polygon
+          points={points}
+          fill={PALETTE.gold}
+          opacity={0.28}
+          stroke={PALETTE.gold}
+          strokeWidth={3}
+          strokeDasharray="4 3"
+          onPress={onPress ? () => onPress(hex.id) : undefined}
+        />
       ) : null}
       {hex.token !== null ? (
         <>
-          <Circle cx={hex.center.x} cy={hex.center.y} r={12} fill="#FAF7F0" stroke="#3a2f1f" strokeWidth={1} />
+          <Circle cx={cx} cy={cy + 1} r={14} fill={PALETTE.wood700} opacity={0.4} />
+          <Circle cx={cx} cy={cy} r={14} fill={PALETTE.washi} stroke={PALETTE.wood700} strokeWidth={1} />
           <SvgText
-            x={hex.center.x}
-            y={hex.center.y + 4}
-            fontSize={13}
-            fontWeight="bold"
-            fill={isRedNumber ? '#C0392B' : '#222'}
+            x={cx}
+            y={cy + 3}
+            fontSize={15}
+            fontWeight="800"
+            fill={isRedNumber ? PALETTE.vermilion : PALETTE.ink}
             textAnchor="middle"
           >
             {hex.token}
           </SvgText>
+          <Pips token={hex.token} cx={cx} cy={cy + 9} color={isRedNumber ? PALETTE.vermilion : PALETTE.ink} />
         </>
       ) : null}
     </>

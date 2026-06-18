@@ -1,13 +1,16 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { COLORS, formatCost } from '../../config/labels';
+import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { formatCost } from '../../config/labels';
 import { COSTS, PIECE_LIMITS } from '../../config/rules';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 import { canAfford } from '../../game/resources';
 import { GamePhase, Player } from '../../game/types';
 
 export type BuildMode = 'road' | 'fort' | 'castle' | null;
 
 interface Props {
+  style?: StyleProp<ViewStyle>;
   phase: GamePhase;
   buildMode: BuildMode;
   player: Player;
@@ -20,38 +23,19 @@ interface Props {
   disabled?: boolean;
 }
 
+// サイコロ/ルール/手番終了は TopBar・DiceTray が担当する。
+// onRoll/onOpenRules/onEndTurn は受け取るのみで、ここでは描画しない（props 据え置きのため）。
 export default function ActionBar({
+  style,
   phase,
   buildMode,
   player,
   onSetBuildMode,
-  onRoll,
   onOpenTrade,
   onOpenCard,
-  onOpenRules,
-  onEndTurn,
   disabled,
 }: Props) {
-  const rulesButton = (
-    <Pressable style={styles.rulesButton} onPress={onOpenRules}>
-      <Text style={styles.rulesText}>？ ルール</Text>
-    </Pressable>
-  );
-
-  if (phase === 'roll') {
-    return (
-      <View style={styles.row}>
-        <Pressable style={styles.primaryButton} onPress={onRoll} disabled={disabled}>
-          <Text style={styles.primaryText}>サイコロを振る</Text>
-        </Pressable>
-        {rulesButton}
-      </View>
-    );
-  }
-
-  if (phase !== 'main') {
-    return <View style={styles.row}>{rulesButton}</View>;
-  }
+  if (phase !== 'main') return null;
 
   const toggle = (mode: BuildMode) => onSetBuildMode(buildMode === mode ? null : mode);
 
@@ -61,8 +45,9 @@ export default function ActionBar({
   const canBuyCard = canAfford(player.resources, COSTS.card);
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.dock, style]}>
       <BuildButton
+        icon="road-variant"
         label="街道"
         cost={formatCost(COSTS.road)}
         active={buildMode === 'road'}
@@ -73,6 +58,7 @@ export default function ActionBar({
         onPress={() => toggle('road')}
       />
       <BuildButton
+        icon="home"
         label="砦"
         cost={formatCost(COSTS.fort)}
         active={buildMode === 'fort'}
@@ -83,6 +69,7 @@ export default function ActionBar({
         onPress={() => toggle('fort')}
       />
       <BuildButton
+        icon="castle"
         label="城"
         cost={formatCost(COSTS.castle)}
         active={buildMode === 'castle'}
@@ -92,10 +79,12 @@ export default function ActionBar({
         disabled={disabled}
         onPress={() => toggle('castle')}
       />
-      <Pressable style={styles.button} onPress={onOpenTrade} disabled={disabled}>
-        <Text style={styles.buttonText}>交易</Text>
+      <Pressable style={styles.btn} onPress={onOpenTrade} disabled={disabled}>
+        <MaterialCommunityIcons name="swap-horizontal" size={20} color={PALETTE.ink} />
+        <Text style={styles.btnLabel}>交易</Text>
       </Pressable>
       <BuildButton
+        icon="cards"
         label="カード"
         cost={formatCost(COSTS.card)}
         active={false}
@@ -103,15 +92,12 @@ export default function ActionBar({
         disabled={disabled}
         onPress={onOpenCard}
       />
-      {rulesButton}
-      <Pressable style={styles.endButton} onPress={onEndTurn} disabled={disabled}>
-        <Text style={styles.endText}>手番終了</Text>
-      </Pressable>
     </View>
   );
 }
 
 interface BuildButtonProps {
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
   label: string;
   cost: string;
   active: boolean;
@@ -122,15 +108,16 @@ interface BuildButtonProps {
   onPress: () => void;
 }
 
-function BuildButton({ label, cost, active, affordable, left, limit, disabled, onPress }: BuildButtonProps) {
+function BuildButton({ icon, label, cost, active, affordable, left, limit, disabled, onPress }: BuildButtonProps) {
   const outOfStock = left !== undefined && left <= 0;
   return (
     <Pressable
-      style={[styles.button, active && styles.buttonActive, !affordable && styles.buttonInsufficient]}
+      style={[styles.btn, active && styles.btnActive, !affordable && styles.btnInsufficient]}
       onPress={onPress}
       disabled={disabled}
     >
-      <Text style={styles.buttonText}>{label}</Text>
+      <MaterialCommunityIcons name={icon} size={20} color={active ? PALETTE.wood900 : PALETTE.ink} />
+      <Text style={[styles.btnLabel, active && styles.btnLabelActive]}>{label}</Text>
       <Text style={[styles.costText, !affordable && styles.costTextInsufficient]}>{cost}</Text>
       {left !== undefined ? (
         <Text style={[styles.stockText, outOfStock && styles.costTextInsufficient]}>残り{left}/{limit}</Text>
@@ -140,18 +127,17 @@ function BuildButton({ label, cost, active, affordable, left, limit, disabled, o
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 8, justifyContent: 'center', alignItems: 'center' },
-  button: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#eee', alignItems: 'center', minWidth: 64 },
-  buttonActive: { backgroundColor: COLORS.brandGreen },
-  buttonInsufficient: { borderWidth: 1, borderColor: '#C0392B' },
-  buttonText: { fontWeight: 'bold', color: '#333' },
-  costText: { fontSize: 10, color: '#555', marginTop: 2 },
-  costTextInsufficient: { color: '#C0392B', fontWeight: 'bold' },
-  stockText: { fontSize: 9, color: '#888' },
-  endButton: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, backgroundColor: COLORS.orange },
-  endText: { color: '#fff', fontWeight: 'bold' },
-  primaryButton: { paddingVertical: 14, paddingHorizontal: 28, borderRadius: 8, backgroundColor: COLORS.brandGreen },
-  primaryText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  rulesButton: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, backgroundColor: '#5B6066' },
-  rulesText: { color: '#fff', fontWeight: 'bold' },
+  dock: { flexDirection: 'row', gap: SPACING.sm },
+  btn: {
+    paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.md,
+    backgroundColor: PALETTE.washi, alignItems: 'center', minWidth: 62,
+    ...ELEVATION.card,
+  },
+  btnActive: { backgroundColor: PALETTE.gold },
+  btnInsufficient: { borderWidth: 1, borderColor: PALETTE.vermilion },
+  btnLabel: { ...TYPE.label, color: PALETTE.ink, marginTop: 2 },
+  btnLabelActive: { color: PALETTE.wood900 },
+  costText: { ...TYPE.caption, color: PALETTE.inkSoft, marginTop: 2 },
+  costTextInsufficient: { color: PALETTE.vermilion, fontWeight: '700' },
+  stockText: { ...TYPE.caption, color: PALETTE.inkSoft, fontSize: 9 },
 });

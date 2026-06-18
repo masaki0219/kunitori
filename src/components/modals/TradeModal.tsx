@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BANK_TRADE_RATE } from '../../config/rules';
 import { RESOURCE_LABELS } from '../../config/labels';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 import { Player, PlayerId, ResourceType } from '../../game/types';
 
 interface Props {
@@ -119,22 +120,22 @@ export default function TradeModal({ currentPlayer, otherPlayers, onBankTrade, o
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, width: '90%', maxHeight: '80%' },
-  tabs: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8, backgroundColor: '#eee' },
-  tabActive: { backgroundColor: '#cde' },
-  label: { fontWeight: 'bold', marginTop: 8, marginBottom: 4 },
+  overlay: { flex: 1, backgroundColor: 'rgba(36,23,16,0.6)', justifyContent: 'center', alignItems: 'center' },
+  card: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: SPACING.lg, width: '90%', maxHeight: '80%', ...ELEVATION.floating },
+  tabs: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
+  tab: { flex: 1, paddingVertical: SPACING.sm, alignItems: 'center', borderRadius: RADIUS.md, backgroundColor: PALETTE.washiDark },
+  tabActive: { backgroundColor: PALETTE.gold },
+  label: { ...TYPE.label, color: PALETTE.ink, marginTop: SPACING.sm, marginBottom: SPACING.xs },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, backgroundColor: '#eee' },
-  chipActive: { backgroundColor: '#07814E', },
+  chip: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: RADIUS.sm, backgroundColor: PALETTE.washiDark },
+  chipActive: { backgroundColor: PALETTE.gold },
   chipDisabled: { opacity: 0.4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 2 },
-  rowLabel: { flex: 1 },
-  smallButton: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#eee', alignItems: 'center', justifyContent: 'center' },
-  count: { width: 24, textAlign: 'center', fontWeight: 'bold' },
-  confirmButton: { backgroundColor: '#07814E', borderRadius: 8, paddingVertical: 12, alignItems: 'center', marginTop: 12 },
-  confirmDisabled: { backgroundColor: '#ccc' },
-  confirmText: { color: '#fff', fontWeight: 'bold' },
-  closeButton: { alignItems: 'center', marginTop: 8, padding: 8 },
+  rowLabel: { flex: 1, color: PALETTE.ink },
+  smallButton: { width: 28, height: 28, borderRadius: 14, backgroundColor: PALETTE.washiDark, alignItems: 'center', justifyContent: 'center' },
+  count: { width: 24, textAlign: 'center', fontWeight: 'bold', color: PALETTE.ink },
+  confirmButton: { backgroundColor: PALETTE.goldLight, borderRadius: RADIUS.md, paddingVertical: SPACING.md, alignItems: 'center', marginTop: SPACING.md },
+  confirmDisabled: { backgroundColor: PALETTE.washiDark },
+  confirmText: { color: PALETTE.wood900, fontWeight: 'bold' },
+  closeButton: { alignItems: 'center', marginTop: SPACING.sm, padding: SPACING.sm },
 });

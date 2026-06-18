@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { COLORS } from '../config/labels';
+import { LinearGradient } from 'expo-linear-gradient';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER } from '../config/theme';
 import { computePoints } from '../game/scoring';
 import { useGameStore } from '../store/gameStore';
 
@@ -23,33 +24,38 @@ export default function ResultScreen() {
     .sort((a, b) => b.points - a.points);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>
-        {winner !== null ? `${players.find((p) => p.id === winner)?.name} の勝利！` : '結果'}
-      </Text>
+    <View style={styles.root}>
+      <LinearGradient colors={[PALETTE.wood500, PALETTE.wood900]} style={StyleSheet.absoluteFill} />
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.heading}>
+          {winner !== null ? `${players.find((p) => p.id === winner)?.name} の勝利！` : '結果'}
+        </Text>
 
-      {ranking.map((r, i) => (
-        <View key={r.player.id} style={[styles.card, { borderColor: r.player.color }]}>
-          <Text style={styles.rank}>{i + 1}位　{r.player.name}（{r.points}点）</Text>
-          <Text style={styles.detail}>砦 {r.forts} ／ 城 {r.castles}</Text>
-          <Text style={styles.detail}>最長街道 {r.longestRoad ? '○' : '−'} ／ 最大兵力 {r.largestArmy ? '○' : '−'}</Text>
-          <Text style={styles.detail}>軍功 {r.merits}</Text>
-        </View>
-      ))}
+        {ranking.map((r, i) => (
+          <View key={r.player.id} style={[styles.card, { borderColor: r.player.color }, i === 0 && styles.cardWinner]}>
+            <Text style={styles.rank}>{i + 1}位　{r.player.name}（{r.points}点）</Text>
+            <Text style={styles.detail}>砦 {r.forts} ／ 城 {r.castles}</Text>
+            <Text style={styles.detail}>最長街道 {r.longestRoad ? '○' : '−'} ／ 最大兵力 {r.largestArmy ? '○' : '−'}</Text>
+            <Text style={styles.detail}>軍功 {r.merits}</Text>
+          </View>
+        ))}
 
-      <Pressable style={styles.button} onPress={resetGame}>
-        <Text style={styles.buttonText}>もう一度遊ぶ</Text>
-      </Pressable>
-    </ScrollView>
+        <Pressable style={styles.button} onPress={resetGame}>
+          <Text style={styles.buttonText}>もう一度遊ぶ</Text>
+        </Pressable>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, backgroundColor: COLORS.cream, padding: 24, gap: 12 },
-  heading: { fontSize: 24, fontWeight: 'bold', color: COLORS.brandGreen, marginBottom: 12, textAlign: 'center' },
-  card: { borderWidth: 2, borderRadius: 8, padding: 12, backgroundColor: '#fff', gap: 4 },
-  rank: { fontSize: 16, fontWeight: 'bold' },
-  detail: { fontSize: 13, color: '#444' },
-  button: { backgroundColor: COLORS.orange, paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 20 },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  root: { flex: 1 },
+  container: { flexGrow: 1, padding: SPACING.xl, gap: SPACING.sm },
+  heading: { ...TYPE.h1, color: PALETTE.gold, marginBottom: SPACING.md, textAlign: 'center' },
+  card: { borderWidth: BORDER.thick, borderRadius: RADIUS.md, padding: SPACING.md, backgroundColor: PALETTE.washi, gap: 4, ...ELEVATION.card },
+  cardWinner: { borderColor: PALETTE.gold },
+  rank: { ...TYPE.h2, color: PALETTE.ink },
+  detail: { ...TYPE.body, color: PALETTE.inkSoft },
+  button: { backgroundColor: PALETTE.goldLight, borderColor: PALETTE.goldDark, borderWidth: 1, paddingVertical: SPACING.md, borderRadius: RADIUS.md, alignItems: 'center', marginTop: SPACING.lg, ...ELEVATION.floating },
+  buttonText: { ...TYPE.h2, color: PALETTE.wood900 },
 });

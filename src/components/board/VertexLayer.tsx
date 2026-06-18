@@ -1,6 +1,8 @@
 import React from 'react';
-import { Circle, Polygon } from 'react-native-svg';
+import { Circle } from 'react-native-svg';
 import { BoardGeometry, BuildingState, Player } from '../../game/types';
+import { PALETTE } from '../../config/theme';
+import { CastleShape, FortShape } from '../icons/PieceShapes';
 
 interface Props {
   geo: BoardGeometry;
@@ -18,7 +20,7 @@ export default function VertexLayer({ geo, buildings, players, buildableVertexId
       {geo.vertices.map((v) => {
         const building = buildings.find((b) => b.vertexId === v.id);
         const isBuildable = buildable.has(v.id);
-        const color = building ? players.find((p) => p.id === building.owner)?.color ?? '#000' : undefined;
+        const color = building ? players.find((p) => p.id === building.owner)?.color ?? PALETTE.ink : undefined;
 
         return (
           <React.Fragment key={v.id}>
@@ -27,21 +29,16 @@ export default function VertexLayer({ geo, buildings, players, buildableVertexId
                 cx={v.pos.x}
                 cy={v.pos.y}
                 r={9}
-                fill="#FFD700"
+                fill={PALETTE.gold}
                 opacity={0.55}
                 onPress={onVertexPress ? () => onVertexPress(v.id) : undefined}
               />
             ) : null}
             {building ? (
               building.type === 'fort' ? (
-                <Circle cx={v.pos.x} cy={v.pos.y} r={6} fill={color} stroke="#222" strokeWidth={1} />
+                <FortShape x={v.pos.x} y={v.pos.y} color={color!} />
               ) : (
-                <Polygon
-                  points={`${v.pos.x},${v.pos.y - 8} ${v.pos.x + 7},${v.pos.y} ${v.pos.x},${v.pos.y + 8} ${v.pos.x - 7},${v.pos.y}`}
-                  fill={color}
-                  stroke="#222"
-                  strokeWidth={1}
-                />
+                <CastleShape x={v.pos.x} y={v.pos.y} color={color!} />
               )
             ) : null}
           </React.Fragment>
