@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { COLORS } from '../config/labels';
 import { useGameStore } from '../store/gameStore';
+import { useNetStore } from '../net/netStore';
 
 interface PlayerConfig {
   name: string;
@@ -69,7 +70,7 @@ export default function SetupScreen() {
       <Pressable
         style={[styles.startButton, !hasHuman && styles.startButtonDisabled]}
         disabled={!hasHuman}
-        onPress={() => startGame({ players })}
+        onPress={() => { useNetStore.getState().startLocal(); startGame({ players }); }}
       >
         <Text style={styles.startButtonText}>開始</Text>
       </Pressable>

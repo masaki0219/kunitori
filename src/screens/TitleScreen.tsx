@@ -11,7 +11,7 @@ export default function TitleScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>{BRANDING.appName}</Text>
       <Text style={styles.subtitle}>戦国・領地拡大ゲーム</Text>
-      <Pressable style={styles.button} onPress={() => goToScreen('setup')}>
+      <Pressable style={styles.button} onPress={() => goToScreen('home')}>
         <Text style={styles.buttonText}>対局を始める</Text>
       </Pressable>
     </View>

@@ -1,6 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import GameScreen from './src/screens/GameScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import JoinRoomScreen from './src/screens/JoinRoomScreen';
+import LobbyScreen from './src/screens/LobbyScreen';
 import ResultScreen from './src/screens/ResultScreen';
 import SetupScreen from './src/screens/SetupScreen';
 import TitleScreen from './src/screens/TitleScreen';
@@ -13,6 +16,15 @@ export default function App() {
   switch (screen) {
     case 'title':
       content = <TitleScreen />;
+      break;
+    case 'home':
+      content = <HomeScreen />;
+      break;
+    case 'joinRoom':
+      content = <JoinRoomScreen />;
+      break;
+    case 'lobby':
+      content = <LobbyScreen />;
       break;
     case 'setup':
       content = <SetupScreen />;

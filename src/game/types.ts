@@ -77,7 +77,7 @@ export interface Player {
 }
 
 // ===== フェーズ / 画面 =====
-export type Screen = 'title' | 'setup' | 'game' | 'result';
+export type Screen = 'title' | 'home' | 'joinRoom' | 'lobby' | 'setup' | 'game' | 'result';
 
 export type GamePhase =
   | 'setupPlacement'  // 初期配置中

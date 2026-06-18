@@ -17,6 +17,7 @@ import { isValidSetupFort } from '../game/setup';
 import { ResourceType } from '../game/types';
 import { useGameStore } from '../store/gameStore';
 import { aiEvaluateTrade } from '../ai/aiPlayer';
+import { useNetStore } from '../net/netStore';
 
 function setupBuildableEdges(state: ReturnType<typeof useGameStore.getState>): number[] {
   if (state.setup.pendingRoadFromVertex === null) return [];
@@ -31,6 +32,7 @@ function setupBuildableVertices(state: ReturnType<typeof useGameStore.getState>)
 
 export default function GameScreen() {
   const state = useGameStore();
+  const { mode, role, mySeat, status, dispatch } = useNetStore();
   const [buildMode, setBuildMode] = useState<BuildMode>(null);
   const [showTrade, setShowTrade] = useState(false);
   const [showCards, setShowCards] = useState(false);
@@ -40,6 +42,8 @@ export default function GameScreen() {
   const currentPlayer = state.players.find((p) => p.id === state.currentPlayer);
 
   useEffect(() => {
+    const net = useNetStore.getState();
+    if (!(net.mode === 'local' || net.role === 'host')) return; // ゲストはAIを動かさない
     if (!currentPlayer) return;
     if (!currentPlayer.isAI) return;
     if (aiRunning.current) return;
@@ -50,13 +54,17 @@ export default function GameScreen() {
   }, [state.currentPlayer, state.phase, state.setup.index, currentPlayer?.isAI]);
 
   useEffect(() => {
+    const net = useNetStore.getState();
+    if (!(net.mode === 'local' || net.role === 'host')) return; // ゲストはAIを動かさない
     if (state.phase !== 'discard') return;
     resolveAIDiscards();
   }, [state.phase, state.discardQueue]);
 
   if (!currentPlayer) return null;
 
-  const isHumanTurn = !currentPlayer.isAI;
+  const isMyTurn = mode === 'local'
+    ? !currentPlayer.isAI                                  // 従来のパススルー
+    : state.currentPlayer === mySeat && !currentPlayer.isAI; // オンラインは自席のみ
 
   const guideText = (() => {
     switch (state.phase) {
@@ -96,51 +104,66 @@ export default function GameScreen() {
   const selectableHexIds = state.phase === 'moveBandit' ? state.board.hexes.filter((h) => h.id !== state.banditHexId).map((h) => h.id) : [];
 
   const onVertexPress = (vertexId: number) => {
-    if (!isHumanTurn) return;
+    if (!isMyTurn) return;
     if (state.phase === 'setupPlacement') {
-      if (state.setup.pendingRoadFromVertex === null) state.placeSetupFort(vertexId);
+      if (state.setup.pendingRoadFromVertex === null) dispatch({ t: 'placeSetupFort', vertexId });
       return;
     }
     if (state.phase !== 'main') return;
-    if (buildMode === 'fort') { state.buildFort(vertexId); setBuildMode(null); }
-    else if (buildMode === 'castle') { state.buildCastle(vertexId); setBuildMode(null); }
+    if (buildMode === 'fort') { dispatch({ t: 'buildFort', vertexId }); setBuildMode(null); }
+    else if (buildMode === 'castle') { dispatch({ t: 'buildCastle', vertexId }); setBuildMode(null); }
   };
 
   const onEdgePress = (edgeId: number) => {
-    if (!isHumanTurn) return;
+    if (!isMyTurn) return;
     if (state.phase === 'setupPlacement') {
-      state.placeSetupRoad(edgeId);
+      dispatch({ t: 'placeSetupRoad', edgeId });
       return;
     }
     if (state.phase !== 'main') return;
-    if (buildMode === 'road') { state.buildRoad(edgeId); if (state.freeRoadsLeft <= 1) setBuildMode(null); }
+    if (buildMode === 'road') { dispatch({ t: 'buildRoad', edgeId }); if (state.freeRoadsLeft <= 1) setBuildMode(null); }
   };
 
   const onHexPress = (hexId: number) => {
-    if (!isHumanTurn) return;
-    if (state.phase === 'moveBandit') state.moveBandit(hexId);
+    if (!isMyTurn) return;
+    if (state.phase === 'moveBandit') dispatch({ t: 'moveBandit', hexId });
   };
 
   const discardTarget = state.phase === 'discard'
-    ? state.players.find((p) => state.discardQueue.includes(p.id) && !p.isAI)
+    ? mode === 'online'
+      ? (mySeat != null && state.discardQueue.includes(mySeat) ? state.players.find((p) => p.id === mySeat) : undefined)
+      : state.players.find((p) => state.discardQueue.includes(p.id) && !p.isAI)
     : undefined;
 
   const stealCandidates = state.phase === 'steal'
     ? state.players.filter((p) => playersAdjacentToHex(state, state.banditHexId).includes(p.id) && p.id !== state.currentPlayer)
     : [];
 
+  const showWaiting = mode === 'online' && state.currentPlayer !== mySeat && state.phase !== 'gameOver';
+  const turnName = state.players[state.currentPlayer]?.name ?? '';
+
   const handlePlayCard = (index: number) => {
     const card = currentPlayer.cards[index];
     if (card === 'harvest' || card === 'requisition') {
       setDevCardEffect({ mode: card, index });
     } else {
-      state.playCard(index);
+      dispatch({ t: 'playCard', index });
       if (card === 'warlord') setShowCards(false);
     }
   };
 
   return (
     <View style={styles.container}>
+      {showWaiting ? (
+        <View style={styles.turnBanner}>
+          <Text style={styles.turnBannerText}>{turnName} のターンです</Text>
+        </View>
+      ) : null}
+      {mode === 'online' && status !== 'connected' ? (
+        <View style={styles.netBanner}>
+          <Text style={styles.netBannerText}>通信状態: {statusLabel(status)}（再接続を試みています）</Text>
+        </View>
+      ) : null}
       <PlayerPanel state={state} />
       <View style={styles.boardWrap}>
         <BoardView
@@ -149,9 +172,9 @@ export default function GameScreen() {
           roads={state.roads}
           players={state.players}
           banditHexId={state.banditHexId}
-          buildableVertexIds={isHumanTurn ? buildableVertexIds : []}
-          buildableEdgeIds={isHumanTurn ? buildableEdgeIds : []}
-          selectableHexIds={isHumanTurn ? selectableHexIds : []}
+          buildableVertexIds={isMyTurn ? buildableVertexIds : []}
+          buildableEdgeIds={isMyTurn ? buildableEdgeIds : []}
+          selectableHexIds={isMyTurn ? selectableHexIds : []}
           onVertexPress={onVertexPress}
           onEdgePress={onEdgePress}
           onHexPress={onHexPress}
@@ -172,30 +195,30 @@ export default function GameScreen() {
         phase={state.phase}
         buildMode={buildMode}
         onSetBuildMode={setBuildMode}
-        onRoll={() => state.rollDice()}
+        onRoll={() => dispatch({ t: 'rollDice' })}
         onOpenTrade={() => setShowTrade(true)}
         onOpenCard={() => setShowCards(true)}
-        onEndTurn={() => { setBuildMode(null); state.endTurn(); }}
-        disabled={!isHumanTurn}
+        onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
+        disabled={!isMyTurn}
       />
 
       {discardTarget ? (
-        <DiscardModal player={discardTarget} onConfirm={(give) => state.discardCards(discardTarget.id, give)} />
+        <DiscardModal player={discardTarget} onConfirm={(give) => dispatch({ t: 'discardCards', playerId: discardTarget.id, give })} />
       ) : null}
 
-      {state.phase === 'steal' && stealCandidates.length > 1 && isHumanTurn ? (
-        <StealTargetModal candidates={stealCandidates} onSelect={(id) => state.stealFrom(id)} />
+      {state.phase === 'steal' && stealCandidates.length > 1 && isMyTurn ? (
+        <StealTargetModal candidates={stealCandidates} onSelect={(id) => dispatch({ t: 'stealFrom', targetId: id })} />
       ) : null}
 
       {showTrade ? (
         <TradeModal
           currentPlayer={currentPlayer}
           otherPlayers={state.players.filter((p) => p.id !== currentPlayer.id)}
-          onBankTrade={(give, take) => state.bankTrade(give, take)}
+          onBankTrade={(give, take) => dispatch({ t: 'bankTrade', give, take })}
           onProposeTrade={(toPlayer, give, want) => {
-            state.proposeTrade(toPlayer, give, want);
+            dispatch({ t: 'proposeTrade', toPlayer, give, want });
             const target = state.players.find((p) => p.id === toPlayer)!;
-            if (target.isAI) {
+            if (target.isAI && (mode === 'local' || role === 'host')) {
               const accept = aiEvaluateTrade(target, give, want);
               setTimeout(() => useGameStore.getState().respondTrade(accept), 300);
             }
@@ -207,7 +230,7 @@ export default function GameScreen() {
       {showCards ? (
         <CardModal
           state={state}
-          onBuy={() => state.buyCard()}
+          onBuy={() => dispatch({ t: 'buyCard' })}
           onPlay={handlePlayCard}
           onClose={() => setShowCards(false)}
         />
@@ -217,32 +240,41 @@ export default function GameScreen() {
         <DevCardEffectModal
           mode={devCardEffect.mode}
           onConfirmHarvest={(picks: ResourceType[]) => {
-            state.playCard(devCardEffect.index, { picks });
+            dispatch({ t: 'playCard', index: devCardEffect.index, payload: { picks } });
             setDevCardEffect(null);
           }}
           onConfirmRequisition={(resource: ResourceType) => {
-            state.playCard(devCardEffect.index, { resource });
+            dispatch({ t: 'playCard', index: devCardEffect.index, payload: { resource } });
             setDevCardEffect(null);
           }}
           onCancel={() => setDevCardEffect(null)}
         />
       ) : null}
 
-      {state.pendingTrade && !state.players.find((p) => p.id === state.pendingTrade!.to)!.isAI ? (
+      {state.pendingTrade && (
+        mode === 'online'
+          ? state.pendingTrade.to === mySeat
+          : !state.players.find((p) => p.id === state.pendingTrade!.to)!.isAI
+      ) ? (
         <View style={styles.respondOverlay}>
           <View style={styles.respondCard}>
             <Text style={styles.respondText}>
               {state.players.find((p) => p.id === state.pendingTrade!.from)?.name} からの交易提案です
             </Text>
             <View style={styles.respondRow}>
-              <Text onPress={() => state.respondTrade(true)} style={styles.respondAccept}>承諾</Text>
-              <Text onPress={() => state.respondTrade(false)} style={styles.respondReject}>拒否</Text>
+              <Text onPress={() => dispatch({ t: 'respondTrade', accept: true })} style={styles.respondAccept}>承諾</Text>
+              <Text onPress={() => dispatch({ t: 'respondTrade', accept: false })} style={styles.respondReject}>拒否</Text>
             </View>
           </View>
         </View>
       ) : null}
     </View>
   );
+}
+
+function statusLabel(s: string) {
+  return s === 'connected' ? '接続済み' : s === 'connecting' ? '接続中…'
+    : s === 'disconnected' ? '切断' : s === 'error' ? 'エラー' : '待機';
 }
 
 const styles = StyleSheet.create({
@@ -257,4 +289,8 @@ const styles = StyleSheet.create({
   respondRow: { flexDirection: 'row', justifyContent: 'space-around' },
   respondAccept: { color: '#07814E', fontWeight: 'bold', fontSize: 16 },
   respondReject: { color: '#C0392B', fontWeight: 'bold', fontSize: 16 },
+  turnBanner: { backgroundColor: 'rgba(7,129,78,0.12)', paddingVertical: 6, alignItems: 'center' },
+  turnBannerText: { color: '#07814E', fontWeight: 'bold' },
+  netBanner: { backgroundColor: '#FBE9E7', paddingVertical: 6, alignItems: 'center' },
+  netBannerText: { color: '#C0392B', fontSize: 12 },
 });
