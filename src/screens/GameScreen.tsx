@@ -9,6 +9,7 @@ import ResourceBar from '../components/Hud/ResourceBar';
 import CardModal from '../components/modals/CardModal';
 import DevCardEffectModal from '../components/modals/DevCardEffectModal';
 import DiscardModal from '../components/modals/DiscardModal';
+import RulesModal from '../components/modals/RulesModal';
 import StealTargetModal from '../components/modals/StealTargetModal';
 import TradeModal from '../components/modals/TradeModal';
 import { playersAdjacentToHex } from '../game/board';
@@ -36,6 +37,7 @@ export default function GameScreen() {
   const [buildMode, setBuildMode] = useState<BuildMode>(null);
   const [showTrade, setShowTrade] = useState(false);
   const [showCards, setShowCards] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [devCardEffect, setDevCardEffect] = useState<{ mode: 'harvest' | 'requisition'; index: number } | null>(null);
   const aiRunning = useRef(false);
 
@@ -194,13 +196,17 @@ export default function GameScreen() {
       <ActionBar
         phase={state.phase}
         buildMode={buildMode}
+        player={currentPlayer}
         onSetBuildMode={setBuildMode}
         onRoll={() => dispatch({ t: 'rollDice' })}
         onOpenTrade={() => setShowTrade(true)}
         onOpenCard={() => setShowCards(true)}
+        onOpenRules={() => setShowRules(true)}
         onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
         disabled={!isMyTurn}
       />
+
+      {showRules ? <RulesModal onClose={() => setShowRules(false)} /> : null}
 
       {discardTarget ? (
         <DiscardModal player={discardTarget} onConfirm={(give) => dispatch({ t: 'discardCards', playerId: discardTarget.id, give })} />

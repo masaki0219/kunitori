@@ -9,6 +9,7 @@ import {
   type Intent, type Member, type Role, type Seat, type NetStatus,
 } from './messages';
 import { newId } from './ids';
+import { generateRoomCode, normalizeRoomCode } from './roomCode';
 
 interface NetState {
   mode: 'local' | 'online';
@@ -48,18 +49,48 @@ export const useNetStore = create<NetState>((set, get) => ({
 
   // --- ホスト: 部屋を作る ---
   hostCreateRoom: async (hostName) => {
-    const { generateRoomCode } = await import('./roomCode');
     const code = generateRoomCode();
     const transport = createFirebaseTransport();
-    const me: Member = { seat: 0, name: hostName, role: 'host', isAI: false, online: true };
+    const me: Member = { seat: 0, name: hostName, role: 'host', isAI: false, online: true, _presenceKey: 'seat-0' };
     set({ mode: 'online', role: 'host', mySeat: 0, roomCode: code,
           members: [me], _transport: transport, _rev: 0, _seenMsgIds: new Set() });
 
     await transport.join(code, { key: 'seat-0', meta: { seat: 0, name: hostName, role: 'host' } }, {
       onStatus: (st) => set({ status: st }),
-      onPresenceChange: (keys) => {
-        // online フラグ更新 ＋ 途中参加者へ現状を再配信
-        set((s) => ({ members: s.members.map((m) => ({ ...m, online: keys.includes(`seat-${m.seat}`) || m.role === 'host' })) }));
+      onPresenceChange: (present) => {
+        // 開始前（ロビー中）に限り、未割り当てのゲスト（pending-*）へ新しい席を割り当てる。
+        // 対局開始後は既存の席構成を変えない（再接続は名前一致で元の席に復帰する想定）。
+        const inLobby = useGameStore.getState().screen === 'lobby';
+        set((s) => {
+          // online フラグ更新: host は常に online、AI は presence を持たないため不変、
+          // ゲストは自分の _presenceKey が present に含まれているかで判定。
+          let members = s.members.map((m) => {
+            if (m.role === 'host') return { ...m, online: true };
+            if (m.isAI) return m;
+            return m._presenceKey ? { ...m, online: m._presenceKey in present } : m;
+          });
+
+          if (inLobby) {
+            const assignedKeys = new Set(members.map((m) => m._presenceKey).filter(Boolean));
+            for (const [key, meta] of Object.entries(present)) {
+              if (!key.startsWith('pending-')) continue;     // ホスト自身やAIは対象外
+              if (assignedKeys.has(key)) continue;            // 既に席がある
+              if ((meta as Partial<Member>)?.role !== 'guest') continue;
+              const seat = members.length;
+              members = [...members, {
+                seat,
+                name: (meta as Partial<Member>)?.name || `プレイヤー${seat + 1}`,
+                role: 'guest',
+                isAI: false,
+                online: true,
+                _presenceKey: key,
+              }];
+              assignedKeys.add(key);
+            }
+          }
+
+          return { members };
+        });
         get()._hostBroadcastLobby();
         get()._hostRebroadcastSnapshot();
       },
@@ -79,7 +110,6 @@ export const useNetStore = create<NetState>((set, get) => ({
 
   // --- ゲスト: 部屋に参加 ---
   guestJoinRoom: async (code, name) => {
-    const { normalizeRoomCode } = await import('./roomCode');
     const room = normalizeRoomCode(code);
     const transport = createFirebaseTransport();
     set({ mode: 'online', role: 'guest', mySeat: null, roomCode: room,

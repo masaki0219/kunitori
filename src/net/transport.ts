@@ -3,8 +3,8 @@ import type { Member } from './messages';
 export interface TransportHandlers {
   /** broadcast を受信したとき（event名と生payload） */
   onMessage: (event: string, payload: unknown) => void;
-  /** presence が変化したとき（現在オンラインのメンバー識別子配列など） */
-  onPresenceChange: (presentKeys: string[]) => void;
+  /** presence が変化したとき（現在の在室者: presenceキー → 各自が track した meta のマップ） */
+  onPresenceChange: (present: Record<string, Partial<Member>>) => void;
   /** 接続状態が変化したとき */
   onStatus: (status: 'connecting' | 'connected' | 'disconnected' | 'error') => void;
 }

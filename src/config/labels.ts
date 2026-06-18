@@ -8,6 +8,15 @@ export const RESOURCE_LABELS: Record<ResourceType, string> = {
   iron: '鉄',
 };
 
+// コスト表示などで使う短い表記
+export const RESOURCE_SHORT_LABELS: Record<ResourceType, string> = {
+  timber: '木',
+  stone: '石',
+  rice: '米',
+  horse: '馬',
+  iron: '鉄',
+};
+
 export const TERRAIN_LABELS: Record<TerrainType, string> = {
   forest: '山林',
   quarry: '石場',
@@ -47,3 +56,10 @@ export const COLORS = {
   cream: '#FAF7F0',
   orange: '#C2541A',
 };
+
+// 例: { timber: 1, stone: 1 } -> "木1・石1"
+export function formatCost(cost: Partial<Record<ResourceType, number>>): string {
+  return Object.entries(cost)
+    .map(([k, v]) => `${RESOURCE_SHORT_LABELS[k as ResourceType]}${v}`)
+    .join('・');
+}

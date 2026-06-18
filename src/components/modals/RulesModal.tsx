@@ -1,0 +1,104 @@
+import React from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { CARD_DESCRIPTIONS, CARD_LABELS, formatCost, RESOURCE_LABELS, TERRAIN_LABELS } from '../../config/labels';
+import { BANK_TRADE_RATE, COSTS, HAND_LIMIT_FOR_DISCARD, LARGEST_ARMY_MIN, LONGEST_ROAD_MIN, PIECE_LIMITS, POINTS, WIN_POINTS } from '../../config/rules';
+import { CardType } from '../../game/types';
+
+interface Props {
+  onClose: () => void;
+}
+
+const TERRAIN_TO_RESOURCE: Record<string, string> = {
+  forest: RESOURCE_LABELS.timber,
+  quarry: RESOURCE_LABELS.stone,
+  paddy: RESOURCE_LABELS.rice,
+  pasture: RESOURCE_LABELS.horse,
+  mine: RESOURCE_LABELS.iron,
+  wasteland: 'なし',
+};
+
+const CARD_ORDER: CardType[] = ['warlord', 'merit', 'construction', 'harvest', 'requisition'];
+
+export default function RulesModal({ onClose }: Props) {
+  return (
+    <Modal transparent animationType="fade">
+      <View style={styles.overlay}>
+        <View style={styles.card}>
+          <Text style={styles.title}>ルール早見表</Text>
+          <ScrollView style={{ marginTop: 8 }}>
+            <Section title="ゲームの流れ">
+              <Line>1. サイコロを振る → 出た数字のヘクスから資源が配られる</Line>
+              <Line>2. 交易・建設・カードの使用を行う</Line>
+              <Line>3. 「手番終了」で次のプレイヤーへ</Line>
+              <Line>勝利点が{WIN_POINTS}点に達したプレイヤーが勝利</Line>
+            </Section>
+
+            <Section title="資源と地形">
+              {Object.entries(TERRAIN_TO_RESOURCE).map(([t, r]) => (
+                <Line key={t}>{TERRAIN_LABELS[t as keyof typeof TERRAIN_LABELS]} → {r}</Line>
+              ))}
+            </Section>
+
+            <Section title="建設に必要なもの">
+              <Line>街道: {formatCost(COSTS.road)}（残り{PIECE_LIMITS.road}本まで）</Line>
+              <Line>砦: {formatCost(COSTS.fort)}（残り{PIECE_LIMITS.fort}個まで・{POINTS.fort}点）</Line>
+              <Line>城（砦の昇格）: {formatCost(COSTS.castle)}（残り{PIECE_LIMITS.castle}個まで・{POINTS.castle}点）</Line>
+              <Line>軍略カード: {formatCost(COSTS.card)}</Line>
+            </Section>
+
+            <Section title="交易">
+              <Line>銀行交易: 同じ資源{BANK_TRADE_RATE}個 → 好きな資源1個</Line>
+              <Line>他プレイヤーとの交易も提案できる</Line>
+            </Section>
+
+            <Section title="得点の種類">
+              <Line>砦: {POINTS.fort}点 / 城: {POINTS.castle}点</Line>
+              <Line>最長街道（{LONGEST_ROAD_MIN}本以上で獲得）: {POINTS.longestRoad}点</Line>
+              <Line>最大兵力（武将{LARGEST_ARMY_MIN}枚以上で獲得）: {POINTS.largestArmy}点</Line>
+              <Line>軍功カード: {POINTS.merit}点</Line>
+            </Section>
+
+            <Section title="軍略カード">
+              {CARD_ORDER.map((c) => (
+                <Line key={c}>{CARD_LABELS[c]}: {CARD_DESCRIPTIONS[c]}</Line>
+              ))}
+            </Section>
+
+            <Section title="野盗">
+              <Line>サイコロで7が出ると、手札{HAND_LIMIT_FOR_DISCARD}枚以上のプレイヤーは半分捨てる</Line>
+              <Line>野盗を移動させ、そのヘクスに隣接する相手から1枚奪える</Line>
+            </Section>
+          </ScrollView>
+
+          <Pressable style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeText}>閉じる</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {children}
+    </View>
+  );
+}
+
+function Line({ children }: { children: React.ReactNode }) {
+  return <Text style={styles.line}>{children}</Text>;
+}
+
+const styles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, width: '92%', maxHeight: '85%' },
+  title: { fontSize: 18, fontWeight: 'bold' },
+  section: { marginBottom: 14 },
+  sectionTitle: { fontSize: 13, fontWeight: 'bold', color: '#07814E', marginBottom: 4 },
+  line: { fontSize: 13, color: '#333', marginBottom: 3, lineHeight: 18 },
+  closeButton: { alignItems: 'center', marginTop: 8, padding: 10, backgroundColor: '#07814E', borderRadius: 8 },
+  closeText: { color: '#fff', fontWeight: 'bold' },
+});

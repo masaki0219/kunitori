@@ -12,6 +12,8 @@ export interface Member {
   role: Role; // host / guest
   isAI: boolean; // ロビーでホストが追加したAI席なら true
   online: boolean; // presence による接続状態
+  // 内部用（ホストのみ使用）: この席に対応する presence キー。配信時は LobbyMessageSchema が未知キーとして除去する。
+  _presenceKey?: string;
 }
 
 export type Intent =
@@ -100,7 +102,9 @@ export const SnapshotMessageSchema = z.object({
     .object({
       screen: z.string(),
       phase: z.string(),
-      players: z.array(z.object({ id: z.number() })).min(1),
+      // .passthrough() が無いと zod が name/cards/resources 等の未定義キーを
+      // 除去し、各プレイヤーが { id } だけに削られてしまう（実際に起きていた不具合）。
+      players: z.array(z.object({ id: z.number() }).passthrough()).min(1),
       currentPlayer: z.number(),
     })
     .passthrough(),
