@@ -10,6 +10,7 @@ import {
 } from './messages';
 import { newId } from './ids';
 import { generateRoomCode, normalizeRoomCode } from './roomCode';
+import { emptyResources } from '../game/resources';
 
 interface NetState {
   mode: 'local' | 'online';
@@ -135,8 +136,15 @@ export const useNetStore = create<NetState>((set, get) => ({
           if (!p.success) return;
           if (p.data.rev <= get()._rev) return;       // 古い/重複は無視
           set({ _rev: p.data.rev });
+          // resources が欠けた player が紛れ込んでいたら補完する（過去に発生した不具合への保険）
+          const incoming = p.data.state as any;
+          if (Array.isArray(incoming.players)) {
+            incoming.players = incoming.players.map((pl: any) =>
+              pl && !pl.resources ? { ...pl, resources: emptyResources() } : pl
+            );
+          }
           // ★重要: replace=true を使わない（アクション関数を消さないため）。マージで適用。
-          useGameStore.setState(p.data.state as any);
+          useGameStore.setState(incoming);
         }
       },
     });

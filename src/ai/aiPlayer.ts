@@ -113,8 +113,9 @@ export function aiEvaluateTrade(player: Player, give: Partial<Record<ResourceTyp
   for (const r of ALL_RESOURCES) {
     const giving = want[r] ?? 0;
     const receiving = give[r] ?? 0;
-    if (giving > 0 && player.resources[r] < 4) return false; // would give away a scarce resource
-    if (receiving > 0 && player.resources[r] > 1) return false; // doesn't need it
+    const owned = player.resources?.[r] ?? 0;
+    if (giving > 0 && owned < 4) return false; // would give away a scarce resource
+    if (receiving > 0 && owned > 1) return false; // doesn't need it
   }
   const totalReceiving = ALL_RESOURCES.reduce((s, r) => s + (give[r] ?? 0), 0);
   const totalGiving = ALL_RESOURCES.reduce((s, r) => s + (want[r] ?? 0), 0);

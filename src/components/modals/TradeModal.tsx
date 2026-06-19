@@ -24,7 +24,11 @@ export default function TradeModal({ currentPlayer, otherPlayers, onBankTrade, o
   const [giveAmt, setGiveAmt] = useState<Partial<Record<ResourceType, number>>>({});
   const [wantAmt, setWantAmt] = useState<Partial<Record<ResourceType, number>>>({});
 
-  const bumpGive = (r: ResourceType) => setGiveAmt((p) => ({ ...p, [r]: Math.min((p[r] ?? 0) + 1, currentPlayer.resources[r]) }));
+  if (!currentPlayer || !currentPlayer.resources) {
+    return null;
+  }
+
+  const bumpGive = (r: ResourceType) => setGiveAmt((p) => ({ ...p, [r]: Math.min((p[r] ?? 0) + 1, currentPlayer.resources?.[r] ?? 0) }));
   const dropGive = (r: ResourceType) => setGiveAmt((p) => ({ ...p, [r]: Math.max((p[r] ?? 0) - 1, 0) }));
   const bumpWant = (r: ResourceType) => setWantAmt((p) => ({ ...p, [r]: (p[r] ?? 0) + 1 }));
   const dropWant = (r: ResourceType) => setWantAmt((p) => ({ ...p, [r]: Math.max((p[r] ?? 0) - 1, 0) }));
@@ -49,11 +53,11 @@ export default function TradeModal({ currentPlayer, otherPlayers, onBankTrade, o
                 {ORDER.map((r) => (
                   <Pressable
                     key={r}
-                    style={[styles.chip, give === r && styles.chipActive, currentPlayer.resources[r] < BANK_TRADE_RATE && styles.chipDisabled]}
-                    disabled={currentPlayer.resources[r] < BANK_TRADE_RATE}
+                    style={[styles.chip, give === r && styles.chipActive, (currentPlayer.resources?.[r] ?? 0) < BANK_TRADE_RATE && styles.chipDisabled]}
+                    disabled={(currentPlayer.resources?.[r] ?? 0) < BANK_TRADE_RATE}
                     onPress={() => setGive(r)}
                   >
-                    <Text>{RESOURCE_LABELS[r]}({currentPlayer.resources[r]})</Text>
+                    <Text>{RESOURCE_LABELS[r]}({currentPlayer.resources?.[r] ?? 0})</Text>
                   </Pressable>
                 ))}
               </View>
