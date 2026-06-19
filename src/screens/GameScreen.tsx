@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { resolveAIDiscards, runAISetupTurn, runAITurn } from '../ai/aiPlayer';
 import BoardView from '../components/board/BoardView';
 import ActionBar, { BuildMode } from '../components/Hud/ActionBar';
@@ -17,6 +16,7 @@ import RulesModal from '../components/modals/RulesModal';
 import StealTargetModal from '../components/modals/StealTargetModal';
 import TradeModal from '../components/modals/TradeModal';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../config/theme';
+import { TABLE_IMAGE } from '../config/assets';
 import { playersAdjacentToHex } from '../game/board';
 import { getBuildableEdges, getBuildableVertices } from '../game/build';
 import { isValidSetupFort } from '../game/setup';
@@ -172,7 +172,11 @@ export default function GameScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={[PALETTE.wood500, PALETTE.wood900]} style={StyleSheet.absoluteFill} />
+      <Image
+        source={TABLE_IMAGE}
+        style={StyleSheet.absoluteFill}
+        resizeMode="cover"
+      />
 
       {mode === 'online' && status !== 'connected' ? (
         <View style={styles.netBanner}>

@@ -16,3 +16,7 @@ export const RESOURCE_IMAGES: Record<ResourceType, ImageSourcePropType | null> =
 };
 
 export const AVATAR_IMAGES: (ImageSourcePropType | null)[] = [null, null, null, null];
+
+// 盤面・背景テクスチャ
+export const TABLE_IMAGE: ImageSourcePropType = require('../../assets/table/table-wood.png');
+export const SEA_IMAGE: ImageSourcePropType = require('../../assets/board/sea.png');

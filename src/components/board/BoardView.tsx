@@ -1,9 +1,9 @@
 import React from 'react';
 import { useWindowDimensions } from 'react-native';
-import Svg, { Defs, LinearGradient, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Defs, LinearGradient, Stop } from 'react-native-svg';
 import { boardViewBox } from '../../game/board';
 import { BoardGeometry, BuildingState, Player, RoadState, TerrainType } from '../../game/types';
-import { PALETTE, TERRAIN_GRADIENTS } from '../../config/theme';
+import { TERRAIN_GRADIENTS } from '../../config/theme';
 import BanditMarker from './BanditMarker';
 import HexTile from './HexTile';
 import RoadLayer from './RoadLayer';
@@ -56,10 +56,6 @@ export default function BoardView({
             <Stop offset="1" stopColor={TERRAIN_GRADIENTS[t].bottom} />
           </LinearGradient>
         ))}
-        <RadialGradient id="sea" cx="50%" cy="50%" r="65%">
-          <Stop offset="0" stopColor={PALETTE.sea300} />
-          <Stop offset="1" stopColor={PALETTE.sea700} />
-        </RadialGradient>
       </Defs>
 
       <SeaIsland geo={geo} />
