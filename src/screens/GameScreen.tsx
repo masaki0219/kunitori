@@ -26,7 +26,7 @@ import { aiEvaluateTrade } from '../ai/aiPlayer';
 import { useNetStore } from '../net/netStore';
 
 const TOP_RESERVE = 8;
-const BOTTOM_RESERVE = 112;
+const BOTTOM_RESERVE = 140;
 
 function setupBuildableEdges(state: ReturnType<typeof useGameStore.getState>): number[] {
   if (state.setup.pendingRoadFromVertex === null) return [];
@@ -230,29 +230,31 @@ export default function GameScreen() {
       >
         <PlayerHandPanel state={state} compact={compact} />
 
-        <View style={styles.centerGroup} pointerEvents="box-none">
-          <DiceTray
+        <View style={styles.rightStack} pointerEvents="box-none">
+          <View style={styles.diceRow} pointerEvents="box-none">
+            <DiceTray
+              phase={state.phase}
+              dice={state.dice}
+              onRoll={() => dispatch({ t: 'rollDice' })}
+              onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
+              disabled={!isMyTurn}
+            />
+          </View>
+
+          <ActionBar
             phase={state.phase}
-            dice={state.dice}
+            buildMode={buildMode}
+            player={currentPlayer}
+            onSetBuildMode={setBuildMode}
             onRoll={() => dispatch({ t: 'rollDice' })}
+            onOpenTrade={() => setShowTrade(true)}
+            onOpenCard={() => setShowCards(true)}
+            onOpenRules={() => setShowRules(true)}
             onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
             disabled={!isMyTurn}
+            compact={compact}
           />
         </View>
-
-        <ActionBar
-          phase={state.phase}
-          buildMode={buildMode}
-          player={currentPlayer}
-          onSetBuildMode={setBuildMode}
-          onRoll={() => dispatch({ t: 'rollDice' })}
-          onOpenTrade={() => setShowTrade(true)}
-          onOpenCard={() => setShowCards(true)}
-          onOpenRules={() => setShowRules(true)}
-          onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
-          disabled={!isMyTurn}
-          compact={compact}
-        />
       </View>
 
       {showRules ? <RulesModal onClose={() => setShowRules(false)} /> : null}
@@ -355,7 +357,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: SPACING.md,
   },
-  centerGroup: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
+  rightStack: { alignItems: 'flex-end', gap: SPACING.sm },
+  diceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: SPACING.md },
   respondOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   respondCard: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: 20, width: '50%', gap: 16, ...ELEVATION.floating },
   respondText: { ...TYPE.body, fontWeight: 'bold', textAlign: 'center', color: PALETTE.ink },
