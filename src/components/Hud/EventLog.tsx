@@ -1,6 +1,7 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Player } from '../../game/types';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
 interface Props {
@@ -10,9 +11,14 @@ interface Props {
   isMyTurn?: boolean;
   turnName?: string;
   compact?: boolean;
+  players?: Player[];
 }
 
-export default function EventLog({ style, log, guideText, isMyTurn, turnName, compact }: Props) {
+export default function EventLog({ style, log, guideText, isMyTurn, turnName, compact, players }: Props) {
+  const colorOf = (line: string) =>
+    players?.find((p) => line.startsWith(p.name))?.color ?? PALETTE.washiDark;
+  const lines = (log ?? []).slice(-4);
+
   return (
     <View style={[styles.wrap, style]}>
       <View style={[styles.statusCard, compact && styles.cardCompact]}>
@@ -28,10 +34,16 @@ export default function EventLog({ style, log, guideText, isMyTurn, turnName, co
       {!compact ? (
         <View style={styles.logCard}>
           <Text style={styles.title}>ゲームログ</Text>
-          {(log ?? []).slice(-4).map((line, i) => (
-            <Text key={i} style={styles.line} numberOfLines={1}>{line}</Text>
-          ))}
-          <Ionicons name="chevron-down" size={14} color={PALETTE.washiDark} style={styles.chevron} />
+          {lines.length > 0 ? (
+            lines.map((line, i) => (
+              <Text key={i} style={[styles.line, { color: colorOf(line) }]} numberOfLines={1}>{line}</Text>
+            ))
+          ) : (
+            <Text style={styles.linePlaceholder}>（まだありません）</Text>
+          )}
+          {(log ?? []).length > 4 ? (
+            <Ionicons name="chevron-down" size={14} color={PALETTE.washiDark} style={styles.chevron} />
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -60,5 +72,6 @@ const styles = StyleSheet.create({
   },
   title: { color: PALETTE.gold, ...TYPE.label },
   line: { color: PALETTE.washiDark, ...TYPE.caption, marginTop: 2 },
+  linePlaceholder: { color: PALETTE.washiDark, ...TYPE.caption, marginTop: 2, opacity: 0.6 },
   chevron: { alignSelf: 'center', marginTop: SPACING.xs },
 });

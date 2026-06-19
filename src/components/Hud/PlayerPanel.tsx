@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { GameState } from '../../game/types';
 import { countResources } from '../../game/resources';
-import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER } from '../../config/theme';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER, darken } from '../../config/theme';
 import { AVATAR_IMAGES } from '../../config/assets';
 import Avatar from '../icons/Avatar';
 import Vp from '../icons/Vp';
@@ -35,7 +35,7 @@ export default function PlayerPanel({ state, style, compact }: Props) {
         const hasLargestArmy = state.largestArmyHolder === p.id;
         const handCount = countResources(p.resources);
         return (
-          <View key={p.id} style={[styles.card, { borderLeftColor: p.color }, isTurn && styles.cardActive, compact && styles.cardCompact]}>
+          <View key={p.id} style={[styles.card, { backgroundColor: darken(p.color, 0.15) }, isTurn && styles.cardActive, compact && styles.cardCompact]}>
             <View style={styles.header}>
               <Avatar color={p.color} letter={p.name.slice(0, 1)} size={avatarSize} image={AVATAR_IMAGES[p.id] ?? null} />
               <Text style={styles.name} numberOfLines={1}>{p.name}{p.isAI ? '(AI)' : ''}</Text>
@@ -45,9 +45,9 @@ export default function PlayerPanel({ state, style, compact }: Props) {
             <View style={styles.metaRow}>
               <Vp size={compact ? 11 : 13} />
               <Text style={styles.scoreText}>{visiblePoints(state, p.id)}</Text>
-              <Ionicons name="star" size={compact ? 10 : 12} color={PALETTE.gold} style={{ marginLeft: SPACING.sm }} />
+              <Ionicons name="star" size={compact ? 10 : 12} color={PALETTE.goldLight} style={{ marginLeft: SPACING.sm }} />
               <Text style={styles.scoreText}>{p.cards.length}</Text>
-              <Ionicons name="albums" size={compact ? 11 : 13} color={PALETTE.inkSoft} style={{ marginLeft: SPACING.sm }} />
+              <Ionicons name="albums" size={compact ? 11 : 13} color={PALETTE.washi} style={{ marginLeft: SPACING.sm }} />
               <Text style={styles.scoreText}>{handCount}</Text>
             </View>
           </View>
@@ -60,15 +60,14 @@ export default function PlayerPanel({ state, style, compact }: Props) {
 const styles = StyleSheet.create({
   rail: { gap: SPACING.sm },
   card: {
-    backgroundColor: PALETTE.washi, borderRadius: RADIUS.md, padding: SPACING.sm,
-    borderLeftWidth: BORDER.thick,
+    borderRadius: RADIUS.md, padding: SPACING.sm,
     ...ELEVATION.card,
   },
   cardCompact: { padding: SPACING.xs },
   cardActive: { borderColor: PALETTE.gold, borderWidth: BORDER.thin },
   header: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
-  name: { ...TYPE.label, color: PALETTE.ink, flexShrink: 1 },
+  name: { ...TYPE.label, color: PALETTE.washi, flexShrink: 1 },
   badge: { fontSize: 11 },
   metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 3 },
-  scoreText: { ...TYPE.caption, color: PALETTE.ink },
+  scoreText: { ...TYPE.caption, color: PALETTE.washi },
 });

@@ -3,7 +3,7 @@ import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-n
 import Svg, { Rect } from 'react-native-svg';
 import { GamePhase } from '../../game/types';
 import { DiePips } from '../icons/Pips';
-import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
+import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER } from '../../config/theme';
 
 interface Props {
   style?: StyleProp<ViewStyle>;
@@ -61,11 +61,12 @@ const styles = StyleSheet.create({
   },
   rollText: { ...TYPE.h2, color: PALETTE.wood900 },
   endBtn: {
-    paddingVertical: SPACING.sm, paddingHorizontal: SPACING.lg,
-    borderRadius: RADIUS.md, backgroundColor: PALETTE.goldLight,
-    borderWidth: 1, borderColor: PALETTE.goldDark,
-    ...ELEVATION.card,
+    paddingVertical: SPACING.md, paddingHorizontal: SPACING.xl,
+    borderRadius: RADIUS.md,
+    backgroundColor: PALETTE.goldLight,
+    borderWidth: BORDER.thin, borderColor: PALETTE.brandGreen,
+    ...ELEVATION.floating,
   },
-  endDisabled: { opacity: 0.4 },
-  endText: { ...TYPE.label, color: PALETTE.wood900 },
+  endDisabled: { opacity: 0.35 },
+  endText: { ...TYPE.h2, color: PALETTE.wood900 },
 });

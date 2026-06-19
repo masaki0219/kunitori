@@ -98,7 +98,7 @@ export default function GameScreen() {
       case 'steal':
         return '略奪する相手を選んでください';
       case 'main':
-        return buildMode ? `${buildMode === 'road' ? '街道' : buildMode === 'fort' ? '砦' : '城'}を置く場所を選んでください` : '交易・建設・カード・手番終了を選べます';
+        return buildMode ? `${buildMode === 'road' ? '街道' : buildMode === 'fort' ? '砦' : '城'}を置く場所を選んでください` : '建設・交易・カードが行えます';
       default:
         return '';
     }
@@ -204,12 +204,13 @@ export default function GameScreen() {
       />
 
       <EventLog
-        style={[styles.eventLog, { top: insets.top + 56, left: insets.left + SPACING.md, width: compact ? 170 : 200 }]}
+        style={[styles.eventLog, { top: insets.top + 56, left: insets.left + SPACING.md, width: compact ? 190 : 240 }]}
         log={state.log}
         guideText={guideText}
         isMyTurn={isMyTurn}
         turnName={turnName}
         compact={compact}
+        players={state.players}
       />
 
       <PlayerPanel
@@ -218,29 +219,27 @@ export default function GameScreen() {
         compact={compact}
       />
 
-      {/* 左下：自分の手札 */}
-      <PlayerHandPanel
-        style={[styles.handGroup, { left: insets.left + SPACING.sm, bottom: insets.bottom + SPACING.sm }]}
-        state={state}
-        compact={compact}
-      />
-
-      {/* 下中央：サイコロ＋手番終了（手札パネルとドックの間で中央寄せ） */}
-      <DiceTray
-        style={[styles.diceCenter, {
+      {/* 下部：手札(左)／サイコロ＋手番終了(中央)／建設ドック(右) を1本のフレックス行で配置 */}
+      <View
+        style={[styles.bottomRow, {
+          left: insets.left + SPACING.sm,
+          right: insets.right + SPACING.sm,
           bottom: insets.bottom + SPACING.sm,
-          left: insets.left + (compact ? 170 : 330),
-          right: insets.right + (compact ? 330 : 620),
         }]}
-        phase={state.phase}
-        dice={state.dice}
-        onRoll={() => dispatch({ t: 'rollDice' })}
-        onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
-        disabled={!isMyTurn}
-      />
+        pointerEvents="box-none"
+      >
+        <PlayerHandPanel state={state} compact={compact} />
 
-      {/* 右下：建設ドック */}
-      <View style={[styles.actionCorner, { right: insets.right + SPACING.sm, bottom: insets.bottom + SPACING.sm }]}>
+        <View style={styles.centerGroup} pointerEvents="box-none">
+          <DiceTray
+            phase={state.phase}
+            dice={state.dice}
+            onRoll={() => dispatch({ t: 'rollDice' })}
+            onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
+            disabled={!isMyTurn}
+          />
+        </View>
+
         <ActionBar
           phase={state.phase}
           buildMode={buildMode}
@@ -349,21 +348,14 @@ const styles = StyleSheet.create({
   topBar: { position: 'absolute' },
   eventLog: { position: 'absolute' },
   playerRail: { position: 'absolute' },
-  handGroup: { position: 'absolute' },
-  diceCenter: {
-    position: 'absolute',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPACING.md,
-    zIndex: 30,
-  },
-  actionCorner: {
+  bottomRow: {
     position: 'absolute',
     flexDirection: 'row',
     alignItems: 'flex-end',
+    justifyContent: 'space-between',
     gap: SPACING.md,
   },
+  centerGroup: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
   respondOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   respondCard: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: 20, width: '50%', gap: 16, ...ELEVATION.floating },
   respondText: { ...TYPE.body, fontWeight: 'bold', textAlign: 'center', color: PALETTE.ink },
