@@ -56,18 +56,3 @@ export function CastleShape({ x, y, color }: { x: number; y: number; color: stri
     </>
   );
 }
-
-// 野盗（bandit）— ポーン風シルエット
-export function BanditShape({ x, y }: { x: number; y: number }) {
-  return (
-    <>
-      <Ellipse cx={x} cy={y + 12} rx={11} ry={4} fill="#000" opacity={0.35} />
-      <Path
-        d={`M ${x - 8} ${y + 10} Q ${x} ${y + 2} ${x + 8} ${y + 10} L ${x + 5} ${y - 4} Q ${x} ${y - 8} ${x - 5} ${y - 4} Z`}
-        fill={PALETTE.wood900}
-        stroke={PALETTE.coast}
-        strokeWidth={1}
-      />
-    </>
-  );
-}

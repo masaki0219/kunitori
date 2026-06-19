@@ -1,6 +1,6 @@
 import React from 'react';
 import { Polygon } from 'react-native-svg';
-import { HEX_SIZE, hexCorners } from '../../game/board';
+import { HEX_SIZE } from '../../game/board';
 import { BoardGeometry } from '../../game/types';
 import { PALETTE } from '../../config/theme';
 
@@ -10,11 +10,22 @@ export default function SeaIsland({ geo }: { geo: BoardGeometry }) {
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
   const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
   const R = Math.max(...geo.vertices.map((v) => Math.hypot(v.pos.x - cx, v.pos.y - cy)));
-  const toPts = (r: number) => hexCorners({ x: cx, y: cy }, r).map((p) => `${p.x},${p.y}`).join(' ');
+
+  // 決定的なゆらぎで島の輪郭を作る（毎フレーム同じ形）
+  const blob = (r: number, jitter: number) => {
+    const n = 20, pts: string[] = [];
+    for (let i = 0; i < n; i++) {
+      const a = (Math.PI * 2 * i) / n;
+      const rr = r + Math.sin(i * 1.7) * jitter + Math.cos(i * 0.9) * jitter * 0.6;
+      pts.push(`${cx + rr * Math.cos(a)},${cy + rr * Math.sin(a)}`);
+    }
+    return pts.join(' ');
+  };
+
   return (
     <>
-      <Polygon points={toPts(R + HEX_SIZE * 1.15)} fill="url(#sea)" strokeLinejoin="round" />
-      <Polygon points={toPts(R + HEX_SIZE * 0.35)} fill={PALETTE.coast} opacity={0.9} strokeLinejoin="round" />
+      <Polygon points={blob(R + HEX_SIZE * 1.7, HEX_SIZE * 0.45)} fill="url(#sea)" />
+      <Polygon points={blob(R + HEX_SIZE * 0.5, HEX_SIZE * 0.22)} fill={PALETTE.coast} opacity={0.95} />
     </>
   );
 }

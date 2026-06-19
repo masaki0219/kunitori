@@ -43,7 +43,7 @@ export default function BoardView({
 }: Props) {
   const { width } = useWindowDimensions();
   const side = size ?? width;
-  const viewBox = boardViewBox(geo, 48);
+  const viewBox = boardViewBox(geo, 80); // 海の外周ぶん余白を確保
   const banditHex = geo.hexes.find((h) => h.id === banditHexId);
   const selectable = new Set(selectableHexIds ?? []);
 

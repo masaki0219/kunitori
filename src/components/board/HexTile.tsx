@@ -65,8 +65,9 @@ export default function HexTile({ hex, onPress, selectable }: Props) {
       ) : null}
       {hex.token !== null ? (
         <>
-          <Circle cx={cx} cy={cy + 1} r={14} fill={PALETTE.wood700} opacity={0.4} />
-          <Circle cx={cx} cy={cy} r={14} fill={PALETTE.washi} stroke={PALETTE.wood700} strokeWidth={1} />
+          <Circle cx={cx} cy={cy + 1} r={15} fill={PALETTE.wood700} opacity={0.35} />
+          <Circle cx={cx} cy={cy} r={14.5} fill="#fff" opacity={0.9} />
+          <Circle cx={cx} cy={cy} r={13} fill={PALETTE.washi} stroke={PALETTE.wood700} strokeWidth={1} />
           <SvgText
             x={cx}
             y={cy + 3}

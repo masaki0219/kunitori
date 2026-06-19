@@ -3,8 +3,12 @@ import { TerrainType, ResourceType } from '../game/types';
 import { ImageSourcePropType } from 'react-native';
 
 export const TERRAIN_IMAGES: Record<TerrainType, ImageSourcePropType | null> = {
-  forest: null, pasture: null, paddy: null, quarry: null, mine: null, wasteland: null,
-  // 例) forest: require('../../assets/terrain/forest.png'),
+  forest: require('../../assets/terrain/forest.png'),
+  pasture: require('../../assets/terrain/pasture.png'),
+  paddy: require('../../assets/terrain/paddy.png'),
+  quarry: require('../../assets/terrain/quarry.png'),
+  mine: require('../../assets/terrain/mine.png'),
+  wasteland: require('../../assets/terrain/wasteland.png'),
 };
 
 export const RESOURCE_IMAGES: Record<ResourceType, ImageSourcePropType | null> = {

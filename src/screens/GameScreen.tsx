@@ -25,9 +25,9 @@ import { useGameStore } from '../store/gameStore';
 import { aiEvaluateTrade } from '../ai/aiPlayer';
 import { useNetStore } from '../net/netStore';
 
-const TOP_RESERVE_COMPACT = 44;
+const TOP_RESERVE_COMPACT = 40;
 const TOP_RESERVE_RICH = 64;
-const BOTTOM_RESERVE_COMPACT = 96;
+const BOTTOM_RESERVE_COMPACT = 88;
 const BOTTOM_RESERVE_RICH = 132;
 
 function setupBuildableEdges(state: ReturnType<typeof useGameStore.getState>): number[] {
@@ -57,7 +57,7 @@ export default function GameScreen() {
   const bottomReserve = (compact ? BOTTOM_RESERVE_COMPACT : BOTTOM_RESERVE_RICH) + insets.bottom;
   const boardSize = Math.min(
     height - topReserve - bottomReserve,
-    width * (compact ? 0.62 : 0.56)
+    width * (compact ? 0.74 : 0.56)
   );
 
   const currentPlayer = state.players.find((p) => p.id === state.currentPlayer);
@@ -177,7 +177,7 @@ export default function GameScreen() {
     <View style={styles.root}>
       <LinearGradient colors={[PALETTE.wood500, PALETTE.wood900]} style={StyleSheet.absoluteFill} />
 
-      {showWaiting ? (
+      {showWaiting && !compact ? (
         <View style={styles.turnBanner}>
           <Text style={styles.turnBannerText}>{turnName} のターンです</Text>
         </View>
