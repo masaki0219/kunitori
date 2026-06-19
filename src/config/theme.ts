@@ -3,7 +3,7 @@ import { TerrainType, ResourceType } from '../game/types';
 // ---- 基本色 ----
 export const PALETTE = {
   wood900: '#241710', wood700: '#3E2718', wood500: '#5C3A22', wood300: '#7A4E2E',
-  sea700: '#123E5E', sea500: '#1C5D8C', sea300: '#2E86C1', coast: '#E8DCC0',
+  sea700: '#1A5C8C', sea500: '#2F8FCB', sea300: '#54B0E8', coast: '#E8DCC0',
   washi: '#F3E9D2', washiDark: '#E2D3B0', ink: '#2B2520', inkSoft: '#5A5048',
   gold: '#C9A24B', goldLight: '#E6C667', goldDark: '#9A7B2E',
   vermilion: '#B23A2E', vermilionLight: '#C8503F', brandGreen: '#07814E',

@@ -25,10 +25,8 @@ import { useGameStore } from '../store/gameStore';
 import { aiEvaluateTrade } from '../ai/aiPlayer';
 import { useNetStore } from '../net/netStore';
 
-const TOP_RESERVE_COMPACT = 40;
-const TOP_RESERVE_RICH = 64;
-const BOTTOM_RESERVE_COMPACT = 88;
-const BOTTOM_RESERVE_RICH = 132;
+const TOP_RESERVE = 8;
+const BOTTOM_RESERVE = 12;
 
 function setupBuildableEdges(state: ReturnType<typeof useGameStore.getState>): number[] {
   if (state.setup.pendingRoadFromVertex === null) return [];
@@ -53,11 +51,11 @@ export default function GameScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const compact = height < 600;
-  const topReserve = (compact ? TOP_RESERVE_COMPACT : TOP_RESERVE_RICH) + insets.top;
-  const bottomReserve = (compact ? BOTTOM_RESERVE_COMPACT : BOTTOM_RESERVE_RICH) + insets.bottom;
+  const topReserve = TOP_RESERVE + insets.top;
+  const bottomReserve = BOTTOM_RESERVE + insets.bottom;
   const boardSize = Math.min(
     height - topReserve - bottomReserve,
-    width * (compact ? 0.74 : 0.56)
+    width * 0.9
   );
 
   const currentPlayer = state.players.find((p) => p.id === state.currentPlayer);
@@ -212,23 +210,28 @@ export default function GameScreen() {
       />
 
       <EventLog
-        style={[styles.eventLog, { top: topReserve, left: insets.left + SPACING.md, width: compact ? 150 : 200 }]}
+        style={[styles.eventLog, { top: insets.top + 56, left: insets.left + SPACING.md, width: compact ? 170 : 200 }]}
         log={state.log}
         guideText={guideText}
         compact={compact}
       />
 
       <PlayerPanel
-        style={[styles.playerRail, { top: topReserve, right: insets.right + SPACING.md, width: compact ? 140 : 168 }]}
+        style={[styles.playerRail, { top: insets.top + 56, right: insets.right + SPACING.md, width: compact ? 132 : 156 }]}
         state={state}
         compact={compact}
       />
 
-      <View style={[styles.bottomBar, { left: insets.left + SPACING.sm, right: insets.right + SPACING.sm, bottom: insets.bottom + SPACING.sm }]}>
-        <PlayerHandPanel style={styles.handGroup} state={state} compact={compact} />
+      {/* 左下：自分の手札 */}
+      <PlayerHandPanel
+        style={[styles.handGroup, { left: insets.left + SPACING.sm, bottom: insets.bottom + SPACING.sm }]}
+        state={state}
+        compact={compact}
+      />
 
+      {/* 右下：サイコロ＋手番終了＋建設アクション */}
+      <View style={[styles.actionCorner, { right: insets.right + SPACING.sm, bottom: insets.bottom + SPACING.sm }]}>
         <DiceTray
-          style={styles.diceGroup}
           phase={state.phase}
           dice={state.dice}
           onRoll={() => dispatch({ t: 'rollDice' })}
@@ -237,7 +240,6 @@ export default function GameScreen() {
         />
 
         <ActionBar
-          style={styles.actionGroup}
           phase={state.phase}
           buildMode={buildMode}
           player={currentPlayer}
@@ -331,20 +333,17 @@ function statusLabel(s: string) {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  boardWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', justifyContent: 'center' },
+  boardWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', justifyContent: 'center', ...ELEVATION.floating },
   topBar: { position: 'absolute' },
   eventLog: { position: 'absolute' },
   playerRail: { position: 'absolute' },
-  bottomBar: {
+  handGroup: { position: 'absolute' },
+  actionCorner: {
     position: 'absolute',
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: SPACING.sm,
+    gap: SPACING.md,
   },
-  handGroup: { flexShrink: 0 },
-  diceGroup: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  actionGroup: { flexShrink: 0 },
   respondOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   respondCard: { backgroundColor: PALETTE.washi, borderRadius: RADIUS.lg, padding: 20, width: '50%', gap: 16, ...ELEVATION.floating },
   respondText: { ...TYPE.body, fontWeight: 'bold', textAlign: 'center', color: PALETTE.ink },

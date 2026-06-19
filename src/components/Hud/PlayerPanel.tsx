@@ -27,8 +27,8 @@ function visiblePoints(state: GameState, id: number): number {
 
 export default function PlayerPanel({ state, style, compact }: Props) {
   const opponents = state.players.filter((p) => p.id !== state.currentPlayer);
-  const avatarSize = compact ? 22 : 28;
-  const iconSize = compact ? 14 : 16;
+  const avatarSize = compact ? 24 : 30;
+  const iconSize = compact ? 14 : 17;
 
   return (
     <View style={[styles.rail, style]}>
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   badge: { fontSize: 11 },
   scoreRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 3 },
   scoreText: { ...TYPE.caption, color: PALETTE.ink },
-  resGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4, gap: 4 },
+  resGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6, gap: 6 },
   resItem: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   resCount: { ...TYPE.caption, color: PALETTE.inkSoft },
 });

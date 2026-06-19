@@ -11,7 +11,7 @@ export default function SeaIsland({ geo }: { geo: BoardGeometry }) {
   const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
   const R = Math.max(...geo.vertices.map((v) => Math.hypot(v.pos.x - cx, v.pos.y - cy)));
 
-  // 決定的なゆらぎで島の輪郭を作る（毎フレーム同じ形）
+  // 決定的なゆらぎで島の輪郭を作る（毎フレーム同じ形。揺らぎを抑えて多角形寄りに整える）
   const blob = (r: number, jitter: number) => {
     const n = 20, pts: string[] = [];
     for (let i = 0; i < n; i++) {
@@ -24,8 +24,8 @@ export default function SeaIsland({ geo }: { geo: BoardGeometry }) {
 
   return (
     <>
-      <Polygon points={blob(R + HEX_SIZE * 1.7, HEX_SIZE * 0.45)} fill="url(#sea)" />
-      <Polygon points={blob(R + HEX_SIZE * 0.5, HEX_SIZE * 0.22)} fill={PALETTE.coast} opacity={0.95} />
+      <Polygon points={blob(R + HEX_SIZE * 1.7, HEX_SIZE * 0.25)} fill="url(#sea)" />
+      <Polygon points={blob(R + HEX_SIZE * 0.45, HEX_SIZE * 0.15)} fill={PALETTE.coast} opacity={0.95} />
     </>
   );
 }

@@ -62,8 +62,10 @@ const styles = StyleSheet.create({
   rollText: { ...TYPE.h2, color: PALETTE.wood900 },
   endBtn: {
     paddingVertical: SPACING.sm, paddingHorizontal: SPACING.lg,
-    borderRadius: RADIUS.md, backgroundColor: PALETTE.vermilion,
+    borderRadius: RADIUS.md, backgroundColor: PALETTE.goldLight,
+    borderWidth: 1, borderColor: PALETTE.goldDark,
+    ...ELEVATION.card,
   },
   endDisabled: { opacity: 0.4 },
-  endText: { ...TYPE.label, color: PALETTE.washi },
+  endText: { ...TYPE.label, color: PALETTE.wood900 },
 });

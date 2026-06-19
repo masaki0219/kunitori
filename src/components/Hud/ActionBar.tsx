@@ -85,7 +85,7 @@ export default function ActionBar({
         onPress={() => toggle('castle')}
       />
       <Pressable style={[styles.btn, compact && styles.btnCompact]} onPress={onOpenTrade} disabled={disabled}>
-        <MaterialCommunityIcons name="swap-horizontal" size={compact ? 16 : 20} color={PALETTE.ink} />
+        <MaterialCommunityIcons name="swap-horizontal" size={compact ? 16 : 20} color={PALETTE.washi} />
         <Text style={styles.btnLabel}>交易</Text>
       </Pressable>
       <BuildButton
@@ -123,7 +123,7 @@ function BuildButton({ icon, label, cost, active, affordable, left, limit, disab
       onPress={onPress}
       disabled={disabled}
     >
-      <MaterialCommunityIcons name={icon} size={compact ? 16 : 20} color={active ? PALETTE.wood900 : PALETTE.ink} />
+      <MaterialCommunityIcons name={icon} size={compact ? 16 : 20} color={active ? PALETTE.wood900 : PALETTE.washi} />
       <Text style={[styles.btnLabel, active && styles.btnLabelActive]}>{label}</Text>
       <Text style={[styles.costText, !affordable && styles.costTextInsufficient]}>{cost}</Text>
       {left !== undefined && !compact ? (
@@ -134,19 +134,23 @@ function BuildButton({ icon, label, cost, active, affordable, left, limit, disab
 }
 
 const styles = StyleSheet.create({
-  dock: { flexDirection: 'row', gap: SPACING.sm },
-  dockCompact: { gap: SPACING.xs },
+  dock: {
+    flexDirection: 'row', gap: SPACING.sm,
+    backgroundColor: 'rgba(30,26,22,0.92)',
+    borderRadius: RADIUS.lg, padding: SPACING.sm,
+    ...ELEVATION.floating,
+  },
+  dockCompact: { gap: SPACING.xs, padding: SPACING.xs },
   btn: {
     paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.md,
-    backgroundColor: PALETTE.washi, alignItems: 'center', minWidth: 62,
-    ...ELEVATION.card,
+    backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', minWidth: 62,
   },
   btnCompact: { paddingVertical: SPACING.xs, paddingHorizontal: SPACING.xs, minWidth: 46 },
   btnActive: { backgroundColor: PALETTE.gold },
-  btnInsufficient: { borderWidth: 1, borderColor: PALETTE.vermilion },
-  btnLabel: { ...TYPE.label, color: PALETTE.ink, marginTop: 2 },
+  btnInsufficient: { borderWidth: 1, borderColor: PALETTE.vermilionLight },
+  btnLabel: { ...TYPE.label, color: PALETTE.washi, marginTop: 2 },
   btnLabelActive: { color: PALETTE.wood900 },
-  costText: { ...TYPE.caption, color: PALETTE.inkSoft, marginTop: 2 },
-  costTextInsufficient: { color: PALETTE.vermilion, fontWeight: '700' },
-  stockText: { ...TYPE.caption, color: PALETTE.inkSoft, fontSize: 9 },
+  costText: { ...TYPE.caption, color: PALETTE.washiDark, marginTop: 2 },
+  costTextInsufficient: { color: PALETTE.vermilionLight, fontWeight: '700' },
+  stockText: { ...TYPE.caption, color: PALETTE.washiDark, fontSize: 9 },
 });

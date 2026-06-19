@@ -65,20 +65,19 @@ export default function HexTile({ hex, onPress, selectable }: Props) {
       ) : null}
       {hex.token !== null ? (
         <>
-          <Circle cx={cx} cy={cy + 1} r={15} fill={PALETTE.wood700} opacity={0.35} />
-          <Circle cx={cx} cy={cy} r={14.5} fill="#fff" opacity={0.9} />
-          <Circle cx={cx} cy={cy} r={13} fill={PALETTE.washi} stroke={PALETTE.wood700} strokeWidth={1} />
+          <Circle cx={cx} cy={cy + 1.5} r={18} fill={PALETTE.wood900} opacity={0.3} />
+          <Circle cx={cx} cy={cy} r={17} fill="#F7EFD9" stroke={PALETTE.wood700} strokeWidth={1.2} />
           <SvgText
             x={cx}
-            y={cy + 3}
-            fontSize={15}
-            fontWeight="800"
+            y={cy + 5}
+            fontSize={19}
+            fontWeight="900"
             fill={isRedNumber ? PALETTE.vermilion : PALETTE.ink}
             textAnchor="middle"
           >
             {hex.token}
           </SvgText>
-          <Pips token={hex.token} cx={cx} cy={cy + 9} color={isRedNumber ? PALETTE.vermilion : PALETTE.ink} />
+          <Pips token={hex.token} cx={cx} cy={cy + 11} color={isRedNumber ? PALETTE.vermilion : PALETTE.ink} />
         </>
       ) : null}
     </>
