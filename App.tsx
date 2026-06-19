@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import GameScreen from './src/screens/GameScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import JoinRoomScreen from './src/screens/JoinRoomScreen';
@@ -41,7 +42,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <View style={styles.container}>
-        {content}
+        <ErrorBoundary>{content}</ErrorBoundary>
         <StatusBar style="auto" />
       </View>
     </SafeAreaProvider>

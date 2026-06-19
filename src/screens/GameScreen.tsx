@@ -225,9 +225,13 @@ export default function GameScreen() {
         compact={compact}
       />
 
-      {/* 下中央：サイコロ＋手番終了 */}
+      {/* 下中央：サイコロ＋手番終了（手札パネルとドックの間で中央寄せ） */}
       <DiceTray
-        style={[styles.diceCenter, { bottom: insets.bottom + SPACING.sm }]}
+        style={[styles.diceCenter, {
+          bottom: insets.bottom + SPACING.sm,
+          left: insets.left + (compact ? 170 : 330),
+          right: insets.right + (compact ? 330 : 620),
+        }]}
         phase={state.phase}
         dice={state.dice}
         onRoll={() => dispatch({ t: 'rollDice' })}
@@ -276,7 +280,10 @@ export default function GameScreen() {
               const target = useGameStore.getState().players.find((p) => p.id === toPlayer);
               if (target?.isAI && (mode === 'local' || role === 'host')) {
                 const accept = aiEvaluateTrade(target, give, want);
-                setTimeout(() => useGameStore.getState().respondTrade(accept), 300);
+                setTimeout(() => {
+                  try { useGameStore.getState().respondTrade(accept); }
+                  catch (e) { console.error('[respondTrade async] crash', e); }
+                }, 300);
               }
             } catch (e) { console.error('[proposeTrade] crash', e); }
           }}
@@ -343,7 +350,14 @@ const styles = StyleSheet.create({
   eventLog: { position: 'absolute' },
   playerRail: { position: 'absolute' },
   handGroup: { position: 'absolute' },
-  diceCenter: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', justifyContent: 'center' },
+  diceCenter: {
+    position: 'absolute',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.md,
+    zIndex: 30,
+  },
   actionCorner: {
     position: 'absolute',
     flexDirection: 'row',

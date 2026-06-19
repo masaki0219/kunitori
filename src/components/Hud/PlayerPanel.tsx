@@ -24,7 +24,7 @@ function visiblePoints(state: GameState, id: number): number {
 }
 
 export default function PlayerPanel({ state, style, compact }: Props) {
-  const players = state.players;
+  const players = state.players.filter((p) => p.id !== state.currentPlayer);
   const avatarSize = compact ? 24 : 30;
 
   return (
