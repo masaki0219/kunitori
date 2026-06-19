@@ -22,12 +22,13 @@ export default function PlayerHandPanel({ style, state, compact }: Props) {
   if (!me) return null;
   const points = computePoints(state, me.id);
   const avatarSize = compact ? 32 : 40;
-  const cardSize = compact ? 40 : 56;
+  const cardSize = compact ? 38 : 48;
 
   return (
     <View style={[styles.panel, style]}>
       <View style={[styles.accent, { backgroundColor: PALETTE.gold }]} />
-      <View style={[styles.left, { width: compact ? 52 : 64 }]}>
+
+      <View style={styles.topRow}>
         <Avatar color={me.color} letter={me.name.slice(0, 1)} size={avatarSize} image={AVATAR_IMAGES[me.id] ?? null} />
         {!compact ? <Text style={styles.name} numberOfLines={1}>{me.name}</Text> : null}
         <View style={styles.scoreRow}>
@@ -37,6 +38,7 @@ export default function PlayerHandPanel({ style, state, compact }: Props) {
           <Text style={styles.scoreText}>{me.cards.length}</Text>
         </View>
       </View>
+
       <View style={[styles.hand, { gap: compact ? SPACING.xs : SPACING.sm }]}>
         {ORDER.map((r) => (
           <View key={r} style={{ opacity: me.resources[r] > 0 ? 1 : 0.45 }}>
@@ -50,18 +52,19 @@ export default function PlayerHandPanel({ style, state, compact }: Props) {
 
 const styles = StyleSheet.create({
   panel: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     backgroundColor: PALETTE.washi,
     borderRadius: RADIUS.lg,
-    padding: SPACING.sm,
+    paddingVertical: SPACING.sm, paddingLeft: SPACING.md, paddingRight: SPACING.sm,
     overflow: 'hidden',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: SPACING.xs,
     ...ELEVATION.floating,
   },
   accent: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
-  left: { alignItems: 'center', justifyContent: 'center', marginLeft: SPACING.xs, marginRight: SPACING.sm },
-  name: { ...TYPE.label, color: PALETTE.ink, marginTop: 2, maxWidth: 64 },
-  scoreRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2, gap: 3 },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  name: { ...TYPE.label, color: PALETTE.ink, maxWidth: 90 },
+  scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   scoreText: { ...TYPE.caption, color: PALETTE.ink },
   hand: { flexDirection: 'row', alignItems: 'center' },
 });

@@ -92,8 +92,10 @@ export default function ActionBar({
         onPress={onOpenTrade}
         disabled={disabled}
       >
-        <MaterialCommunityIcons name="swap-horizontal" size={compact ? 16 : 20} color={PALETTE.washi} />
-        <Text style={styles.btnLabel}>交易</Text>
+        <View style={styles.btnTop}>
+          <MaterialCommunityIcons name="swap-horizontal" size={compact ? 14 : 18} color={PALETTE.washi} />
+          <Text style={styles.btnLabel}>交易</Text>
+        </View>
       </Pressable>
       <BuildButton
         icon="cards"
@@ -128,6 +130,7 @@ interface BuildButtonProps {
 
 function BuildButton({ icon, label, color, cost, active, affordable, left, limit, badge, disabled, compact, onPress }: BuildButtonProps) {
   const outOfStock = left !== undefined && left <= 0;
+  const tokens = cost ? cost.split('・') : [];
   return (
     <Pressable
       style={[
@@ -143,9 +146,20 @@ function BuildButton({ icon, label, color, cost, active, affordable, left, limit
       {badge !== undefined && badge > 0 ? (
         <View style={styles.badge}><Text style={styles.badgeText}>{badge}</Text></View>
       ) : null}
-      <MaterialCommunityIcons name={icon} size={compact ? 16 : 20} color={active ? PALETTE.wood900 : PALETTE.washi} />
-      <Text style={[styles.btnLabel, active && styles.btnLabelActive]}>{label}</Text>
-      <Text style={[styles.costText, !affordable && styles.costTextInsufficient]}>{cost}</Text>
+
+      <View style={styles.btnTop}>
+        <MaterialCommunityIcons name={icon} size={compact ? 14 : 18} color={active ? PALETTE.wood900 : PALETTE.washi} />
+        <Text style={[styles.btnLabel, active && styles.btnLabelActive]} numberOfLines={1}>{label}</Text>
+      </View>
+
+      {tokens.length > 0 ? (
+        <View style={styles.costWrap}>
+          {tokens.map((t, i) => (
+            <Text key={i} style={[styles.costToken, !affordable && styles.costTextInsufficient]}>{t}</Text>
+          ))}
+        </View>
+      ) : null}
+
       {left !== undefined && !compact ? (
         <Text style={[styles.stockText, outOfStock && styles.costTextInsufficient]}>残り{left}/{limit}</Text>
       ) : null}
@@ -162,8 +176,8 @@ const styles = StyleSheet.create({
   },
   dockCompact: { gap: SPACING.xs, padding: SPACING.xs },
   btn: {
-    paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.md,
-    alignItems: 'center', minWidth: 62,
+    paddingVertical: SPACING.xs, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.md,
+    alignItems: 'center', width: 84,
   },
   badge: {
     position: 'absolute', top: -6, right: -6, minWidth: 18, height: 18, borderRadius: 9,
@@ -171,12 +185,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3, zIndex: 1,
   },
   badgeText: { color: PALETTE.washi, fontSize: 10, fontWeight: '700' },
-  btnCompact: { paddingVertical: SPACING.xs, paddingHorizontal: SPACING.xs, minWidth: 46 },
+  btnCompact: { width: 66, paddingVertical: 2, paddingHorizontal: SPACING.xs },
   btnActive: { backgroundColor: PALETTE.gold },
   btnInsufficient: { borderWidth: 1, borderColor: PALETTE.vermilionLight },
-  btnLabel: { ...TYPE.label, color: PALETTE.washi, marginTop: 2 },
+  btnTop: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  btnLabel: { ...TYPE.label, color: PALETTE.washi },
   btnLabelActive: { color: PALETTE.wood900 },
-  costText: { ...TYPE.caption, color: PALETTE.washiDark, marginTop: 2 },
+  costWrap: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 3, marginTop: 2 },
+  costToken: { ...TYPE.caption, color: PALETTE.washiDark },
   costTextInsufficient: { color: PALETTE.vermilionLight, fontWeight: '700' },
-  stockText: { ...TYPE.caption, color: PALETTE.washiDark, fontSize: 9 },
+  stockText: { ...TYPE.caption, color: PALETTE.washiDark, fontSize: 9, marginTop: 1 },
 });

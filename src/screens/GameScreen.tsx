@@ -26,7 +26,7 @@ import { aiEvaluateTrade } from '../ai/aiPlayer';
 import { useNetStore } from '../net/netStore';
 
 const TOP_RESERVE = 8;
-const BOTTOM_RESERVE = 12;
+const BOTTOM_RESERVE = 112;
 
 function setupBuildableEdges(state: ReturnType<typeof useGameStore.getState>): number[] {
   if (state.setup.pendingRoadFromVertex === null) return [];
