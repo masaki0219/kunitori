@@ -25,8 +25,8 @@ import { useGameStore } from '../store/gameStore';
 import { aiEvaluateTrade } from '../ai/aiPlayer';
 import { useNetStore } from '../net/netStore';
 
-const TOP_RESERVE = 8;
-const BOTTOM_RESERVE = 140;
+const TOP_RESERVE = 4;
+const BOTTOM_RESERVE = 72;
 
 function setupBuildableEdges(state: ReturnType<typeof useGameStore.getState>): number[] {
   if (state.setup.pendingRoadFromVertex === null) return [];
@@ -55,7 +55,8 @@ export default function GameScreen() {
   const bottomReserve = BOTTOM_RESERVE + insets.bottom;
   const boardSize = Math.min(
     height - topReserve - bottomReserve,
-    width * 0.9
+    width * 0.62,
+    560
   );
 
   const currentPlayer = state.players.find((p) => p.id === state.currentPlayer);
