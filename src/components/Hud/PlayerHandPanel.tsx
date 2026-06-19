@@ -22,7 +22,7 @@ export default function PlayerHandPanel({ style, state, compact }: Props) {
   if (!me) return null;
   const points = computePoints(state, me.id);
   const avatarSize = compact ? 32 : 40;
-  const cardSize = compact ? 34 : 44;
+  const cardSize = compact ? 40 : 56;
 
   return (
     <View style={[styles.panel, style]}>

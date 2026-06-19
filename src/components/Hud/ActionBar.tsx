@@ -3,7 +3,7 @@ import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-n
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatCost } from '../../config/labels';
 import { COSTS, PIECE_LIMITS } from '../../config/rules';
-import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
+import { ACTION_COLORS, PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 import { canAfford } from '../../game/resources';
 import { GamePhase, Player } from '../../game/types';
 
@@ -51,6 +51,7 @@ export default function ActionBar({
       <BuildButton
         icon="road-variant"
         label="街道"
+        color={ACTION_COLORS.road}
         cost={formatCost(COSTS.road)}
         active={buildMode === 'road'}
         affordable={canBuildRoad}
@@ -63,6 +64,7 @@ export default function ActionBar({
       <BuildButton
         icon="home"
         label="砦"
+        color={ACTION_COLORS.fort}
         cost={formatCost(COSTS.fort)}
         active={buildMode === 'fort'}
         affordable={canBuildFort}
@@ -75,6 +77,7 @@ export default function ActionBar({
       <BuildButton
         icon="castle"
         label="城"
+        color={ACTION_COLORS.castle}
         cost={formatCost(COSTS.castle)}
         active={buildMode === 'castle'}
         affordable={canBuildCastle}
@@ -84,16 +87,22 @@ export default function ActionBar({
         compact={compact}
         onPress={() => toggle('castle')}
       />
-      <Pressable style={[styles.btn, compact && styles.btnCompact]} onPress={onOpenTrade} disabled={disabled}>
+      <Pressable
+        style={[styles.btn, compact && styles.btnCompact, { backgroundColor: ACTION_COLORS.trade }]}
+        onPress={onOpenTrade}
+        disabled={disabled}
+      >
         <MaterialCommunityIcons name="swap-horizontal" size={compact ? 16 : 20} color={PALETTE.washi} />
         <Text style={styles.btnLabel}>交易</Text>
       </Pressable>
       <BuildButton
         icon="cards"
         label="カード"
+        color={ACTION_COLORS.card}
         cost={formatCost(COSTS.card)}
         active={false}
         affordable={canBuyCard}
+        badge={player.cards.length}
         disabled={disabled}
         compact={compact}
         onPress={onOpenCard}
@@ -105,24 +114,35 @@ export default function ActionBar({
 interface BuildButtonProps {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   label: string;
+  color: string;
   cost: string;
   active: boolean;
   affordable: boolean;
   left?: number;
   limit?: number;
+  badge?: number;
   disabled?: boolean;
   compact?: boolean;
   onPress: () => void;
 }
 
-function BuildButton({ icon, label, cost, active, affordable, left, limit, disabled, compact, onPress }: BuildButtonProps) {
+function BuildButton({ icon, label, color, cost, active, affordable, left, limit, badge, disabled, compact, onPress }: BuildButtonProps) {
   const outOfStock = left !== undefined && left <= 0;
   return (
     <Pressable
-      style={[styles.btn, compact && styles.btnCompact, active && styles.btnActive, !affordable && styles.btnInsufficient]}
+      style={[
+        styles.btn,
+        compact && styles.btnCompact,
+        { backgroundColor: color },
+        active && styles.btnActive,
+        !affordable && styles.btnInsufficient,
+      ]}
       onPress={onPress}
       disabled={disabled}
     >
+      {badge !== undefined && badge > 0 ? (
+        <View style={styles.badge}><Text style={styles.badgeText}>{badge}</Text></View>
+      ) : null}
       <MaterialCommunityIcons name={icon} size={compact ? 16 : 20} color={active ? PALETTE.wood900 : PALETTE.washi} />
       <Text style={[styles.btnLabel, active && styles.btnLabelActive]}>{label}</Text>
       <Text style={[styles.costText, !affordable && styles.costTextInsufficient]}>{cost}</Text>
@@ -143,8 +163,14 @@ const styles = StyleSheet.create({
   dockCompact: { gap: SPACING.xs, padding: SPACING.xs },
   btn: {
     paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.md,
-    backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', minWidth: 62,
+    alignItems: 'center', minWidth: 62,
   },
+  badge: {
+    position: 'absolute', top: -6, right: -6, minWidth: 18, height: 18, borderRadius: 9,
+    backgroundColor: PALETTE.vermilion, alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 3, zIndex: 1,
+  },
+  badgeText: { color: PALETTE.washi, fontSize: 10, fontWeight: '700' },
   btnCompact: { paddingVertical: SPACING.xs, paddingHorizontal: SPACING.xs, minWidth: 46 },
   btnActive: { backgroundColor: PALETTE.gold },
   btnInsufficient: { borderWidth: 1, borderColor: PALETTE.vermilionLight },

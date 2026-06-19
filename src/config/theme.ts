@@ -48,6 +48,15 @@ export const TYPE = {
   token: { fontSize: 15, fontWeight: '800' as const },
 };
 
+// ---- 建設ドックのボタン色（街道/砦/城/交易/カード）----
+export const ACTION_COLORS = {
+  road: '#2F6FA8',
+  fort: '#2E7D4F',
+  castle: '#6B4E9A',
+  trade: '#1F8A8A',
+  card: '#9A6B3E',
+} as const;
+
 export const SPACING = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 28 } as const;
 export const RADIUS  = { sm: 6, md: 10, lg: 16, xl: 22, pill: 999 } as const;
 export const BORDER  = { hair: 1, thin: 1.5, thick: 3 } as const;

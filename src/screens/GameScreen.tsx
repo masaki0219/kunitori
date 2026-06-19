@@ -158,7 +158,6 @@ export default function GameScreen() {
     ? state.players.filter((p) => playersAdjacentToHex(state, state.banditHexId).includes(p.id) && p.id !== state.currentPlayer)
     : [];
 
-  const showWaiting = mode === 'online' && state.currentPlayer !== mySeat && state.phase !== 'gameOver';
   const turnName = state.players[state.currentPlayer]?.name ?? '';
 
   const handlePlayCard = (index: number) => {
@@ -175,11 +174,6 @@ export default function GameScreen() {
     <View style={styles.root}>
       <LinearGradient colors={[PALETTE.wood500, PALETTE.wood900]} style={StyleSheet.absoluteFill} />
 
-      {showWaiting && !compact ? (
-        <View style={styles.turnBanner}>
-          <Text style={styles.turnBannerText}>{turnName} のターンです</Text>
-        </View>
-      ) : null}
       {mode === 'online' && status !== 'connected' ? (
         <View style={styles.netBanner}>
           <Text style={styles.netBannerText}>通信状態: {statusLabel(status)}（再接続を試みています）</Text>
@@ -213,6 +207,8 @@ export default function GameScreen() {
         style={[styles.eventLog, { top: insets.top + 56, left: insets.left + SPACING.md, width: compact ? 170 : 200 }]}
         log={state.log}
         guideText={guideText}
+        isMyTurn={isMyTurn}
+        turnName={turnName}
         compact={compact}
       />
 
@@ -229,16 +225,18 @@ export default function GameScreen() {
         compact={compact}
       />
 
-      {/* 右下：サイコロ＋手番終了＋建設アクション */}
-      <View style={[styles.actionCorner, { right: insets.right + SPACING.sm, bottom: insets.bottom + SPACING.sm }]}>
-        <DiceTray
-          phase={state.phase}
-          dice={state.dice}
-          onRoll={() => dispatch({ t: 'rollDice' })}
-          onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
-          disabled={!isMyTurn}
-        />
+      {/* 下中央：サイコロ＋手番終了 */}
+      <DiceTray
+        style={[styles.diceCenter, { bottom: insets.bottom + SPACING.sm }]}
+        phase={state.phase}
+        dice={state.dice}
+        onRoll={() => dispatch({ t: 'rollDice' })}
+        onEndTurn={() => { setBuildMode(null); dispatch({ t: 'endTurn' }); }}
+        disabled={!isMyTurn}
+      />
 
+      {/* 右下：建設ドック */}
+      <View style={[styles.actionCorner, { right: insets.right + SPACING.sm, bottom: insets.bottom + SPACING.sm }]}>
         <ActionBar
           phase={state.phase}
           buildMode={buildMode}
@@ -268,14 +266,19 @@ export default function GameScreen() {
         <TradeModal
           currentPlayer={currentPlayer}
           otherPlayers={state.players.filter((p) => p.id !== currentPlayer.id)}
-          onBankTrade={(give, take) => dispatch({ t: 'bankTrade', give, take })}
+          onBankTrade={(give, take) => {
+            try { dispatch({ t: 'bankTrade', give, take }); }
+            catch (e) { console.error('[bankTrade] crash', e); }
+          }}
           onProposeTrade={(toPlayer, give, want) => {
-            dispatch({ t: 'proposeTrade', toPlayer, give, want });
-            const target = state.players.find((p) => p.id === toPlayer)!;
-            if (target.isAI && (mode === 'local' || role === 'host')) {
-              const accept = aiEvaluateTrade(target, give, want);
-              setTimeout(() => useGameStore.getState().respondTrade(accept), 300);
-            }
+            try {
+              dispatch({ t: 'proposeTrade', toPlayer, give, want });
+              const target = useGameStore.getState().players.find((p) => p.id === toPlayer);
+              if (target?.isAI && (mode === 'local' || role === 'host')) {
+                const accept = aiEvaluateTrade(target, give, want);
+                setTimeout(() => useGameStore.getState().respondTrade(accept), 300);
+              }
+            } catch (e) { console.error('[proposeTrade] crash', e); }
           }}
           onClose={() => setShowTrade(false)}
         />
@@ -305,23 +308,25 @@ export default function GameScreen() {
         />
       ) : null}
 
-      {state.pendingTrade && (
-        mode === 'online'
-          ? state.pendingTrade.to === mySeat
-          : !state.players.find((p) => p.id === state.pendingTrade!.to)!.isAI
-      ) ? (
-        <View style={styles.respondOverlay}>
-          <View style={styles.respondCard}>
-            <Text style={styles.respondText}>
-              {state.players.find((p) => p.id === state.pendingTrade!.from)?.name} からの交易提案です
-            </Text>
-            <View style={styles.respondRow}>
-              <Text onPress={() => dispatch({ t: 'respondTrade', accept: true })} style={styles.respondAccept}>承諾</Text>
-              <Text onPress={() => dispatch({ t: 'respondTrade', accept: false })} style={styles.respondReject}>拒否</Text>
+      {(() => {
+        const pt = state.pendingTrade;
+        if (!pt) return null;
+        const toPlayer = state.players.find((p) => p.id === pt.to);
+        const fromPlayer = state.players.find((p) => p.id === pt.from);
+        const shouldShow = mode === 'online' ? pt.to === mySeat : toPlayer ? !toPlayer.isAI : false;
+        if (!shouldShow) return null;
+        return (
+          <View style={styles.respondOverlay}>
+            <View style={styles.respondCard}>
+              <Text style={styles.respondText}>{fromPlayer?.name ?? '相手'} からの交易提案です</Text>
+              <View style={styles.respondRow}>
+                <Text onPress={() => dispatch({ t: 'respondTrade', accept: true })} style={styles.respondAccept}>承諾</Text>
+                <Text onPress={() => dispatch({ t: 'respondTrade', accept: false })} style={styles.respondReject}>拒否</Text>
+              </View>
             </View>
           </View>
-        </View>
-      ) : null}
+        );
+      })()}
     </View>
   );
 }
@@ -338,6 +343,7 @@ const styles = StyleSheet.create({
   eventLog: { position: 'absolute' },
   playerRail: { position: 'absolute' },
   handGroup: { position: 'absolute' },
+  diceCenter: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', justifyContent: 'center' },
   actionCorner: {
     position: 'absolute',
     flexDirection: 'row',
@@ -350,8 +356,6 @@ const styles = StyleSheet.create({
   respondRow: { flexDirection: 'row', justifyContent: 'space-around' },
   respondAccept: { color: PALETTE.brandGreen, fontWeight: 'bold', fontSize: 16 },
   respondReject: { color: PALETTE.vermilion, fontWeight: 'bold', fontSize: 16 },
-  turnBanner: { position: 'absolute', top: SPACING.sm, alignSelf: 'center', backgroundColor: 'rgba(7,129,78,0.85)', paddingVertical: 6, paddingHorizontal: SPACING.md, borderRadius: RADIUS.md, zIndex: 5 },
-  turnBannerText: { color: '#fff', fontWeight: 'bold' },
   netBanner: { position: 'absolute', top: SPACING.sm, alignSelf: 'center', backgroundColor: '#FBE9E7', paddingVertical: 6, paddingHorizontal: SPACING.md, borderRadius: RADIUS.md, zIndex: 5 },
   netBannerText: { color: '#C0392B', fontSize: 12 },
 });

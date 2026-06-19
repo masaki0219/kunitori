@@ -1,11 +1,11 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { GameState, ResourceType } from '../../game/types';
+import { GameState } from '../../game/types';
+import { countResources } from '../../game/resources';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER } from '../../config/theme';
 import { AVATAR_IMAGES } from '../../config/assets';
 import Avatar from '../icons/Avatar';
-import ResourceIcon from '../icons/ResourceIcon';
 import Vp from '../icons/Vp';
 
 interface Props {
@@ -13,8 +13,6 @@ interface Props {
   style?: StyleProp<ViewStyle>;
   compact?: boolean;
 }
-
-const ORDER: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
 
 // 表示専用：対戦相手には公開情報だけから計算した点を見せる（軍功などの隠し点は含めない）
 function visiblePoints(state: GameState, id: number): number {
@@ -26,16 +24,16 @@ function visiblePoints(state: GameState, id: number): number {
 }
 
 export default function PlayerPanel({ state, style, compact }: Props) {
-  const opponents = state.players.filter((p) => p.id !== state.currentPlayer);
+  const players = state.players;
   const avatarSize = compact ? 24 : 30;
-  const iconSize = compact ? 14 : 17;
 
   return (
     <View style={[styles.rail, style]}>
-      {opponents.map((p) => {
+      {players.map((p) => {
         const isTurn = p.id === state.currentPlayer;
         const hasLongestRoad = state.longestRoadHolder === p.id;
         const hasLargestArmy = state.largestArmyHolder === p.id;
+        const handCount = countResources(p.resources);
         return (
           <View key={p.id} style={[styles.card, { borderLeftColor: p.color }, isTurn && styles.cardActive, compact && styles.cardCompact]}>
             <View style={styles.header}>
@@ -44,19 +42,13 @@ export default function PlayerPanel({ state, style, compact }: Props) {
               {hasLongestRoad ? <Text style={styles.badge}>🚩</Text> : null}
               {hasLargestArmy ? <Text style={styles.badge}>⚔</Text> : null}
             </View>
-            <View style={styles.scoreRow}>
+            <View style={styles.metaRow}>
               <Vp size={compact ? 11 : 13} />
               <Text style={styles.scoreText}>{visiblePoints(state, p.id)}</Text>
               <Ionicons name="star" size={compact ? 10 : 12} color={PALETTE.gold} style={{ marginLeft: SPACING.sm }} />
               <Text style={styles.scoreText}>{p.cards.length}</Text>
-            </View>
-            <View style={styles.resGrid}>
-              {ORDER.map((r) => (
-                <View key={r} style={styles.resItem}>
-                  <ResourceIcon resource={r} size={iconSize} />
-                  <Text style={styles.resCount}>{p.resources[r]}</Text>
-                </View>
-              ))}
+              <Ionicons name="albums" size={compact ? 11 : 13} color={PALETTE.inkSoft} style={{ marginLeft: SPACING.sm }} />
+              <Text style={styles.scoreText}>{handCount}</Text>
             </View>
           </View>
         );
@@ -77,9 +69,6 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
   name: { ...TYPE.label, color: PALETTE.ink, flexShrink: 1 },
   badge: { fontSize: 11 },
-  scoreRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 3 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 3 },
   scoreText: { ...TYPE.caption, color: PALETTE.ink },
-  resGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6, gap: 6 },
-  resItem: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  resCount: { ...TYPE.caption, color: PALETTE.inkSoft },
 });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
@@ -6,30 +7,58 @@ interface Props {
   style?: StyleProp<ViewStyle>;
   log: string[];
   guideText: string;
+  isMyTurn?: boolean;
+  turnName?: string;
   compact?: boolean;
 }
 
-export default function EventLog({ style, log, guideText, compact }: Props) {
+export default function EventLog({ style, log, guideText, isMyTurn, turnName, compact }: Props) {
   return (
-    <View style={[styles.card, compact && styles.cardCompact, style]}>
-      {!compact ? <Text style={styles.title}>イベントログ</Text> : null}
-      {(log ?? []).slice(compact ? -1 : -3).map((line, i) => (
-        <Text key={i} style={styles.line} numberOfLines={1}>{line}</Text>
-      ))}
-      <Text style={styles.guide} numberOfLines={2}>▸ {guideText}</Text>
+    <View style={[styles.wrap, style]}>
+      <View style={[styles.statusCard, compact && styles.cardCompact]}>
+        <View style={styles.statusHeader}>
+          <View style={[styles.dot, isMyTurn && styles.dotActive]} />
+          <Text style={styles.statusTitle} numberOfLines={1}>
+            {isMyTurn ? 'あなたの手番です' : `${turnName ?? '相手'} の手番です`}
+          </Text>
+        </View>
+        <Text style={styles.statusSub} numberOfLines={2}>{guideText}</Text>
+      </View>
+
+      {!compact ? (
+        <View style={styles.logCard}>
+          <Text style={styles.title}>ゲームログ</Text>
+          {(log ?? []).slice(-4).map((line, i) => (
+            <Text key={i} style={styles.line} numberOfLines={1}>{line}</Text>
+          ))}
+          <Ionicons name="chevron-down" size={14} color={PALETTE.washiDark} style={styles.chevron} />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: 'rgba(36,23,16,0.78)',
+  wrap: { gap: SPACING.sm },
+  statusCard: {
+    backgroundColor: 'rgba(36,23,16,0.85)',
     borderRadius: RADIUS.md,
     padding: SPACING.md,
     ...ELEVATION.card,
   },
   cardCompact: { padding: SPACING.xs },
+  statusHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
+  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: PALETTE.inkSoft },
+  dotActive: { backgroundColor: PALETTE.brandGreen },
+  statusTitle: { color: PALETTE.washi, ...TYPE.label, flexShrink: 1 },
+  statusSub: { color: PALETTE.washiDark, ...TYPE.caption, marginTop: SPACING.xs },
+  logCard: {
+    backgroundColor: 'rgba(36,23,16,0.78)',
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    ...ELEVATION.card,
+  },
   title: { color: PALETTE.gold, ...TYPE.label },
   line: { color: PALETTE.washiDark, ...TYPE.caption, marginTop: 2 },
-  guide: { color: PALETTE.goldLight, ...TYPE.label, marginTop: SPACING.sm },
+  chevron: { alignSelf: 'center', marginTop: SPACING.xs },
 });
