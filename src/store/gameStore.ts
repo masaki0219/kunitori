@@ -21,7 +21,6 @@ function placeholderState(): GameState {
     currentPlayer: 0,
     deck: [],
     dice: null,
-    longestRoadHolder: null,
     largestArmyHolder: null,
     pendingTrade: null,
     discardQueue: [],

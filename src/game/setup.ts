@@ -59,7 +59,6 @@ export function createInitialGame(config: CreateGameConfig): GameState {
     currentPlayer: snakeOrder[0],
     deck: buildDeck(),
     dice: null,
-    longestRoadHolder: null,
     largestArmyHolder: null,
     pendingTrade: null,
     discardQueue: [],

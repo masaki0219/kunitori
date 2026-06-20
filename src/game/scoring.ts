@@ -1,4 +1,4 @@
-import { LARGEST_ARMY_MIN, LONGEST_ROAD_MIN, PRESTIGE, WIN_PRESTIGE } from '../config/rules';
+import { LARGEST_ARMY_MIN, NETWORK_MIN, PRESTIGE, WIN_PRESTIGE } from '../config/rules';
 import { GameState, PlayerId } from './types';
 
 export function computePrestige(state: GameState, playerId: PlayerId): number {
@@ -7,7 +7,7 @@ export function computePrestige(state: GameState, playerId: PlayerId): number {
   const player = state.players.find((p) => p.id === playerId)!;
 
   let points = forts * PRESTIGE.fort + castles * PRESTIGE.castle;
-  if (state.longestRoadHolder === playerId) points += PRESTIGE.longestRoad;
+  if (hasStrongholdNetwork(state, playerId)) points += PRESTIGE.network;
   if (state.largestArmyHolder === playerId) points += PRESTIGE.largestArmy;
 
   const merits = player.cards.filter((c) => c === 'merit').length;
@@ -16,83 +16,40 @@ export function computePrestige(state: GameState, playerId: PlayerId): number {
   return points;
 }
 
-// 対象プレイヤーの road グラフ上で、頂点に他プレイヤーの建物がある場合はそこで分断しつつ、
-// 同じ辺を二度通らない最長trailをDFSで探索する。
-export function longestTrailForPlayer(state: GameState, playerId: PlayerId): number {
-  const playerEdges = state.roads.filter((r) => r.owner === playerId);
-  if (playerEdges.length === 0) return 0;
-
-  // vertexId -> [{edgeId, otherVertexId}]
-  const adjacency = new Map<number, { edgeId: number; other: number }[]>();
-  for (const r of playerEdges) {
-    const edge = state.board.edges[r.edgeId];
-    const [a, b] = edge.vertexIds;
-    if (!adjacency.has(a)) adjacency.set(a, []);
-    if (!adjacency.has(b)) adjacency.set(b, []);
-    adjacency.get(a)!.push({ edgeId: r.edgeId, other: b });
-    adjacency.get(b)!.push({ edgeId: r.edgeId, other: a });
-  }
-
-  const blockedVertex = (vertexId: number): boolean => {
-    const b = state.buildings.find((bb) => bb.vertexId === vertexId);
-    return !!b && b.owner !== playerId;
+// 自分の街道で連結された1つのネットワーク上に、自分の拠点(砦/城)が NETWORK_MIN 個以上
+// 載っていれば true。「最長」ではなく「拠点をいくつ束ねたか」を評価する。
+export function hasStrongholdNetwork(state: GameState, playerId: PlayerId): boolean {
+  const adj = new Map<number, number[]>();
+  const link = (a: number, b: number) => {
+    const xa = adj.get(a); if (xa) xa.push(b); else adj.set(a, [b]);
   };
-
-  let best = 0;
-
-  function dfs(vertex: number, usedEdges: Set<number>, length: number) {
-    best = Math.max(best, length);
-    const neighbors = adjacency.get(vertex) ?? [];
-    for (const n of neighbors) {
-      if (usedEdges.has(n.edgeId)) continue;
-      if (length > 0 && blockedVertex(vertex)) continue; // 分断: 他人の建物を越えて進めない
-      usedEdges.add(n.edgeId);
-      dfs(n.other, usedEdges, length + 1);
-      usedEdges.delete(n.edgeId);
-    }
+  for (const r of state.roads) {
+    if (r.owner !== playerId) continue;
+    const [a, b] = state.board.edges[r.edgeId].vertexIds;
+    link(a, b); link(b, a);
   }
+  if (adj.size === 0) return false;
 
-  for (const startVertex of adjacency.keys()) {
-    dfs(startVertex, new Set<number>(), 0);
-  }
+  const myStrongholds = new Set(
+    state.buildings.filter((b) => b.owner === playerId).map((b) => b.vertexId)
+  );
 
-  return best;
-}
-
-export function updateLongestRoad(state: GameState): GameState {
-  const lengths = new Map<PlayerId, number>();
-  for (const p of state.players) {
-    lengths.set(p.id, longestTrailForPlayer(state, p.id));
-  }
-
-  const currentHolder = state.longestRoadHolder;
-  const currentLength = currentHolder !== null ? (lengths.get(currentHolder) ?? 0) : 0;
-
-  let bestPlayer = currentHolder;
-  let bestLength = currentHolder !== null ? currentLength : 0;
-
-  for (const p of state.players) {
-    const len = lengths.get(p.id) ?? 0;
-    if (len >= LONGEST_ROAD_MIN && len > bestLength) {
-      bestLength = len;
-      bestPlayer = p.id;
-    }
-  }
-
-  if (currentHolder !== null && (lengths.get(currentHolder) ?? 0) < LONGEST_ROAD_MIN) {
-    // 現保持者が基準未満に落ちることは通常ないが、念のため再評価
-    bestPlayer = null;
-    bestLength = 0;
-    for (const p of state.players) {
-      const len = lengths.get(p.id) ?? 0;
-      if (len >= LONGEST_ROAD_MIN && len > bestLength) {
-        bestLength = len;
-        bestPlayer = p.id;
+  const visited = new Set<number>();
+  for (const start of adj.keys()) {
+    if (visited.has(start)) continue;
+    let count = 0;
+    const queue: number[] = [start];
+    visited.add(start);
+    while (queue.length > 0) {
+      const v = queue.shift()!;
+      if (myStrongholds.has(v)) count++;
+      for (const n of adj.get(v) ?? []) {
+        if (!visited.has(n)) { visited.add(n); queue.push(n); }
       }
     }
+    if (count >= NETWORK_MIN) return true;
   }
-
-  return { ...state, longestRoadHolder: bestPlayer };
+  return false;
 }
 
 export function updateLargestArmy(state: GameState): GameState {
@@ -123,8 +80,7 @@ export function checkWin(state: GameState): GameState {
 }
 
 export function recomputeAfterBuild(state: GameState): GameState {
-  let next = updateLongestRoad(state);
-  next = updateLargestArmy(next);
+  let next = updateLargestArmy(state);
   next = checkWin(next);
   return next;
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Overlay from './Overlay';
 import { CARD_DESCRIPTIONS, CARD_LABELS, formatCost, RESOURCE_LABELS, TERRAIN_LABELS } from '../../config/labels';
-import { BANK_TRADE_RATE, COSTS, GENERIC_PORT_COUNT, HAND_LIMIT_FOR_DISCARD, LARGEST_ARMY_MIN, LONGEST_ROAD_MIN, PIECE_LIMITS, PORT_RATES, PRESTIGE, SPECIFIC_PORT_RESOURCES, WIN_PRESTIGE } from '../../config/rules';
+import { BANK_TRADE_RATE, COSTS, GENERIC_PORT_COUNT, HAND_LIMIT_FOR_DISCARD, LARGEST_ARMY_MIN, NETWORK_MIN, PIECE_LIMITS, PORT_RATES, PRESTIGE, SPECIFIC_PORT_RESOURCES, WIN_PRESTIGE } from '../../config/rules';
 import { CardType } from '../../game/types';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
@@ -57,7 +57,7 @@ export default function RulesModal({ onClose }: Props) {
 
             <Section title="得点の種類">
               <Line>砦: {PRESTIGE.fort}点 / 城: {PRESTIGE.castle}点</Line>
-              <Line>最長街道（{LONGEST_ROAD_MIN}本以上で獲得）: {PRESTIGE.longestRoad}点</Line>
+              <Line>街道網：自分の街道で拠点を{NETWORK_MIN}つ以上つなぐと威信+{PRESTIGE.network}</Line>
               <Line>最大兵力（武将{LARGEST_ARMY_MIN}枚以上で獲得）: {PRESTIGE.largestArmy}点</Line>
               <Line>軍功カード: {PRESTIGE.merit}点</Line>
             </Section>

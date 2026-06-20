@@ -12,9 +12,9 @@ export const COSTS = {
 
 export const PIECE_LIMITS = { road: 15, fort: 5, castle: 4 } as const;
 
-export const PRESTIGE = { fort: 1, castle: 2, longestRoad: 2, largestArmy: 2, merit: 1 } as const;
+export const PRESTIGE = { fort: 1, castle: 2, network: 2, largestArmy: 2, merit: 1 } as const;
 
-export const LONGEST_ROAD_MIN = 5;
+export const NETWORK_MIN = 3;
 export const LARGEST_ARMY_MIN = 3;
 export const HAND_LIMIT_FOR_DISCARD = 8; // これ以上で7のとき破棄
 export const BANK_TRADE_RATE = 4;        // 4:1

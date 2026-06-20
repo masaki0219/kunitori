@@ -118,7 +118,6 @@ export interface GameState {
   currentPlayer: PlayerId;
   deck: CardType[];               // 山札（引く順）
   dice: [number, number] | null;  // 直近の出目
-  longestRoadHolder: PlayerId | null;
   largestArmyHolder: PlayerId | null;
   pendingTrade: PendingTrade | null;
   discardQueue: PlayerId[];       // 7のとき破棄が必要な人の待ち行列

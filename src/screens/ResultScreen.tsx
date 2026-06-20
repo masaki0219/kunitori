@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER } from '../config/theme';
-import { computePrestige } from '../game/scoring';
+import { computePrestige, hasStrongholdNetwork } from '../game/scoring';
 import { useGameStore } from '../store/gameStore';
 
 export default function ResultScreen() {
@@ -18,7 +18,7 @@ export default function ResultScreen() {
       forts: state.buildings.filter((b) => b.owner === p.id && b.type === 'fort').length,
       castles: state.buildings.filter((b) => b.owner === p.id && b.type === 'castle').length,
       merits: p.cards.filter((c) => c === 'merit').length,
-      longestRoad: state.longestRoadHolder === p.id,
+      network: hasStrongholdNetwork(state, p.id),
       largestArmy: state.largestArmyHolder === p.id,
     }))
     .sort((a, b) => b.points - a.points);
@@ -35,7 +35,7 @@ export default function ResultScreen() {
           <View key={r.player.id} style={[styles.card, { borderColor: r.player.color }, i === 0 && styles.cardWinner]}>
             <Text style={styles.rank}>{i + 1}位　{r.player.name}（{r.points}点）</Text>
             <Text style={styles.detail}>砦 {r.forts} ／ 城 {r.castles}</Text>
-            <Text style={styles.detail}>最長街道 {r.longestRoad ? '○' : '−'} ／ 最大兵力 {r.largestArmy ? '○' : '−'}</Text>
+            <Text style={styles.detail}>街道網 {r.network ? '○' : '−'} ／ 最大兵力 {r.largestArmy ? '○' : '−'}</Text>
             <Text style={styles.detail}>軍功 {r.merits}</Text>
           </View>
         ))}

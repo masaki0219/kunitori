@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { GameState } from '../../game/types';
 import { countResources } from '../../game/resources';
+import { hasStrongholdNetwork } from '../../game/scoring';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER, darken } from '../../config/theme';
 import { AVATAR_IMAGES } from '../../config/assets';
 import Avatar from '../icons/Avatar';
@@ -18,7 +19,7 @@ interface Props {
 function visiblePoints(state: GameState, id: number): number {
   const forts = state.buildings.filter((b) => b.owner === id && b.type === 'fort').length;
   const castles = state.buildings.filter((b) => b.owner === id && b.type === 'castle').length;
-  const lr = state.longestRoadHolder === id ? 2 : 0;
+  const lr = hasStrongholdNetwork(state, id) ? 2 : 0;
   const la = state.largestArmyHolder === id ? 2 : 0;
   return forts * 1 + castles * 2 + lr + la;
 }
@@ -31,7 +32,7 @@ export default function PlayerPanel({ state, style, compact }: Props) {
     <View style={[styles.rail, style]}>
       {players.map((p) => {
         const isTurn = p.id === state.currentPlayer;
-        const hasLongestRoad = state.longestRoadHolder === p.id;
+        const hasLongestRoad = hasStrongholdNetwork(state, p.id);
         const hasLargestArmy = state.largestArmyHolder === p.id;
         const handCount = countResources(p.resources);
         return (

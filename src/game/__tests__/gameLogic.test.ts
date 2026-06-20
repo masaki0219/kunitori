@@ -1,7 +1,7 @@
 import { buildBoardGeometry } from '../board';
 import { buildFort, buildRoad, getBuildableEdges, getBuildableVertices, isValidRoad } from '../build';
 import { produceResources } from '../production';
-import { longestTrailForPlayer, updateLongestRoad } from '../scoring';
+import { hasStrongholdNetwork } from '../scoring';
 import { emptyResources } from '../resources';
 import { bankTrade } from '../trade';
 import { GameState, Player } from '../types';
@@ -36,7 +36,6 @@ function makeState(): GameState {
     currentPlayer: 0,
     deck: [],
     dice: null,
-    longestRoadHolder: null,
     largestArmyHolder: null,
     pendingTrade: null,
     discardQueue: [],
@@ -108,14 +107,12 @@ describe('production', () => {
   });
 });
 
-describe('longest road', () => {
-  it('counts a straight line of 5 roads as length 5', () => {
-    let state = makeState();
-    // build a chain of vertices via neighborVertexIds
+describe('stronghold network', () => {
+  function buildChain(state: GameState, length: number): { path: number[]; roads: { edgeId: number; owner: number }[] } {
     const start = state.board.vertices[0];
     let path: number[] = [start.id];
     let current = start;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < length; i++) {
       const next = current.neighborVertexIds.find((nid) => !path.includes(nid));
       if (next === undefined) break;
       path.push(next);
@@ -128,15 +125,28 @@ describe('longest road', () => {
       )!;
       roads.push({ edgeId: edge.id, owner: 0 });
     }
-    state = { ...state, roads };
-    const length = longestTrailForPlayer(state, 0);
-    expect(length).toBe(roads.length);
+    return { path, roads };
+  }
+
+  it('is true when 3 of own strongholds are connected by own roads', () => {
+    let state = makeState();
+    const { path, roads } = buildChain(state, 5);
+    const buildings = [path[0], path[1], path[2]].map((vertexId) => ({ vertexId, owner: 0, type: 'fort' as const }));
+    state = { ...state, roads, buildings };
+    expect(hasStrongholdNetwork(state, 0)).toBe(true);
   });
 
-  it('does not award holder below minimum, awards at minimum', () => {
+  it('is false when only 2 strongholds are connected', () => {
     let state = makeState();
-    const updated = updateLongestRoad(state);
-    expect(updated.longestRoadHolder).toBeNull();
+    const { path, roads } = buildChain(state, 5);
+    const buildings = [path[0], path[1]].map((vertexId) => ({ vertexId, owner: 0, type: 'fort' as const }));
+    state = { ...state, roads, buildings };
+    expect(hasStrongholdNetwork(state, 0)).toBe(false);
+  });
+
+  it('is false when there are no roads', () => {
+    const state = makeState();
+    expect(hasStrongholdNetwork(state, 0)).toBe(false);
   });
 });
 

@@ -9,7 +9,7 @@ export function toSnapshotState(s: Store): GameState {
     screen: s.screen, phase: s.phase, board: s.board, terrainSeed: s.terrainSeed,
     buildings: s.buildings, roads: s.roads, banditHexId: s.banditHexId,
     players: s.players, currentPlayer: s.currentPlayer, deck: s.deck, dice: s.dice,
-    longestRoadHolder: s.longestRoadHolder, largestArmyHolder: s.largestArmyHolder,
+    largestArmyHolder: s.largestArmyHolder,
     pendingTrade: s.pendingTrade, discardQueue: s.discardQueue, freeRoadsLeft: s.freeRoadsLeft,
     setup: s.setup, winner: s.winner, log: s.log,
   };
