@@ -90,8 +90,8 @@ export type Screen = 'title' | 'home' | 'joinRoom' | 'lobby' | 'setup' | 'game' 
 export type GamePhase =
   | 'setupPlacement'  // 初期配置中
   | 'roll'            // サイコロ前
-  | 'discard'         // 7で破棄待ち
-  | 'moveBandit'      // 野盗移動待ち
+  | 'discard'         // 7で供出待ち
+  | 'moveBandit'      // 一揆移動待ち
   | 'steal'           // 略奪相手選択待ち
   | 'main'            // 交易・建設フェーズ
   | 'gameOver';
@@ -111,7 +111,7 @@ export interface GameState {
   terrainSeed: number;            // 再生成用（任意）
   buildings: BuildingState[];
   roads: RoadState[];
-  banditHexId: number;            // 野盗のいるヘクスID
+  banditHexId: number;            // 一揆の起きているヘクスID
   players: Player[];
   currentPlayer: PlayerId;
   vassalDeck: VassalId[];          // 家臣山札（登用する順）

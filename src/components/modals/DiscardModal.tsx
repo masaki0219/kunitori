@@ -33,7 +33,7 @@ export default function DiscardModal({ player, onConfirm }: Props) {
     <Overlay>
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>{player.name} は {required} 枚捨ててください</Text>
+          <Text style={styles.title}>{player.name} は一揆により年貢を {required} 枚供出してください</Text>
           <Text style={styles.sub}>（手札 {countResources(player.resources)} 枚の半分）</Text>
           {ORDER.map((r) => (
             <View key={r} style={styles.row}>

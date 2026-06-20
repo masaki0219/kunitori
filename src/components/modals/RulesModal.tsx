@@ -66,9 +66,9 @@ export default function RulesModal({ onClose }: Props) {
               ))}
             </Section>
 
-            <Section title="野盗">
-              <Line>サイコロで7が出ると、手札{HAND_LIMIT_FOR_DISCARD}枚以上のプレイヤーは半分捨てる</Line>
-              <Line>野盗を移動させ、そのヘクスに隣接する相手から1枚奪える</Line>
+            <Section title="一揆">
+              <Line>サイコロで7が出ると、手札{HAND_LIMIT_FOR_DISCARD}枚以上のプレイヤーは一揆により年貢を半分供出する</Line>
+              <Line>一揆をヘクス間で移動させ、隣接する相手から略奪できる</Line>
             </Section>
           </ScrollView>
 

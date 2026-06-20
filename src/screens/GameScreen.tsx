@@ -94,13 +94,13 @@ export default function GameScreen() {
       case 'roll':
         return 'サイコロを振ってください';
       case 'discard':
-        return 'カードを捨ててください';
+        return '年貢を供出してください';
       case 'moveBandit':
-        return '野盗を動かす場所を選んでください';
+        return '一揆を起こす場所を選んでください';
       case 'steal':
         return '略奪する相手を選んでください';
       case 'main':
-        return buildMode ? `${buildMode === 'road' ? '街道' : buildMode === 'fort' ? '砦' : '城'}を置く場所を選んでください` : '建設・交易・カードが行えます';
+        return buildMode ? `${buildMode === 'road' ? '街道' : buildMode === 'fort' ? '砦' : '城'}を置く場所を選んでください` : '建設・交易・登用が行えます';
       default:
         return '';
     }
