@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Overlay from './Overlay';
 import { RESOURCE_LABELS } from '../../config/labels';
 import { countResources } from '../../game/resources';
 import { Player, ResourceType } from '../../game/types';
@@ -29,7 +30,7 @@ export default function DiscardModal({ player, onConfirm }: Props) {
   };
 
   return (
-    <Modal transparent animationType="fade">
+    <Overlay>
       <View style={styles.overlay}>
         <View style={styles.card}>
           <Text style={styles.title}>{player.name} は {required} 枚捨ててください</Text>
@@ -51,7 +52,7 @@ export default function DiscardModal({ player, onConfirm }: Props) {
           </Pressable>
         </View>
       </View>
-    </Modal>
+    </Overlay>
   );
 }
 

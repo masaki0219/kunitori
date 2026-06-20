@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Overlay from './Overlay';
 import { Player, PlayerId } from '../../game/types';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER } from '../../config/theme';
 
@@ -10,7 +11,7 @@ interface Props {
 
 export default function StealTargetModal({ candidates, onSelect }: Props) {
   return (
-    <Modal transparent animationType="fade">
+    <Overlay>
       <View style={styles.overlay}>
         <View style={styles.card}>
           <Text style={styles.title}>略奪する相手を選んでください</Text>
@@ -21,7 +22,7 @@ export default function StealTargetModal({ candidates, onSelect }: Props) {
           ))}
         </View>
       </View>
-    </Modal>
+    </Overlay>
   );
 }
 

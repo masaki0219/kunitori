@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Overlay from './Overlay';
 import { COSTS } from '../../config/rules';
 import { CARD_DESCRIPTIONS, CARD_LABELS } from '../../config/labels';
 import { canPlayCard } from '../../game/cards';
@@ -19,7 +20,7 @@ export default function CardModal({ state, onBuy, onPlay, onClose }: Props) {
   const canBuy = state.deck.length > 0 && canAfford(player.resources, COSTS.card);
 
   return (
-    <Modal transparent animationType="fade">
+    <Overlay onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.card}>
           <Text style={styles.title}>軍略カード</Text>
@@ -51,7 +52,7 @@ export default function CardModal({ state, onBuy, onPlay, onClose }: Props) {
           </Pressable>
         </View>
       </View>
-    </Modal>
+    </Overlay>
   );
 }
 

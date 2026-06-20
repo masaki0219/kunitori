@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Overlay from './Overlay';
 import { RESOURCE_LABELS } from '../../config/labels';
 import { ResourceType } from '../../game/types';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
@@ -18,7 +19,7 @@ export default function DevCardEffectModal({ mode, onConfirmHarvest, onConfirmRe
 
   if (mode === 'requisition') {
     return (
-      <Modal transparent animationType="fade">
+      <Overlay onRequestClose={onCancel}>
         <View style={styles.overlay}>
           <View style={styles.card}>
             <Text style={styles.title}>徴発：奪う資源を1種選んでください</Text>
@@ -32,7 +33,7 @@ export default function DevCardEffectModal({ mode, onConfirmHarvest, onConfirmRe
             <Pressable style={styles.closeButton} onPress={onCancel}><Text>キャンセル</Text></Pressable>
           </View>
         </View>
-      </Modal>
+      </Overlay>
     );
   }
 
@@ -44,7 +45,7 @@ export default function DevCardEffectModal({ mode, onConfirmHarvest, onConfirmRe
   };
 
   return (
-    <Modal transparent animationType="fade">
+    <Overlay onRequestClose={onCancel}>
       <View style={styles.overlay}>
         <View style={styles.card}>
           <Text style={styles.title}>豊作：好きな資源を合計2個選んでください</Text>
@@ -66,7 +67,7 @@ export default function DevCardEffectModal({ mode, onConfirmHarvest, onConfirmRe
           <Pressable style={styles.closeButton} onPress={onCancel}><Text>キャンセル</Text></Pressable>
         </View>
       </View>
-    </Modal>
+    </Overlay>
   );
 }
 
