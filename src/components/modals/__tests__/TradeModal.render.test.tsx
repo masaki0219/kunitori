@@ -16,10 +16,8 @@ function makePlayer(id: number, overrides: Partial<Player> = {}): Player {
     isAI: false,
     color: '#000',
     resources: emptyResources(),
-    cards: [],
-    cardsBoughtThisTurn: [],
+    vassals: [],
     playedWarlords: 0,
-    hasPlayedCardThisTurn: false,
     piecesLeft: { road: 15, fort: 5, castle: 4 },
     ...overrides,
   };

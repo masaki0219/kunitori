@@ -1,4 +1,4 @@
-import { CardType, ResourceType, TerrainType } from '../game/types';
+import { ResourceType, TerrainType, VassalId } from '../game/types';
 
 export const RESOURCE_LABELS: Record<ResourceType, string> = {
   timber: '木材',
@@ -35,20 +35,18 @@ export const TERRAIN_COLORS: Record<TerrainType, string> = {
   wasteland: '#C9B89A',
 };
 
-export const CARD_LABELS: Record<CardType, string> = {
-  warlord: '武将',
-  merit: '軍功',
-  construction: '普請',
-  harvest: '豊作',
-  requisition: '徴発',
+export const VASSAL_LABELS: Record<VassalId, string> = {
+  fushin: '普請奉行', gunshi: '軍師', kaisen: '廻船問屋',
+  daikan: '代官', kura: '蔵奉行', hatamoto: '旗本',
 };
 
-export const CARD_DESCRIPTIONS: Record<CardType, string> = {
-  warlord: '野盗を移動し、隣接する相手から1枚略奪する。',
-  merit: '隠し勝利点+1。引いた時点で加点（プレイ不要）。',
-  construction: '街道を2本まで無料で建設できる。',
-  harvest: '好きな資源を合計2個もらう。',
-  requisition: '資源を1種指定し、他の全プレイヤーが持つその資源を全部獲得する。',
+export const VASSAL_DESCRIPTIONS: Record<VassalId, string> = {
+  fushin: '街道の建設で石が1少なくて済む。',
+  gunshi: '略奪のとき相手から2枚奪う。',
+  kaisen: 'すべての交易レートが1良くなる。',
+  daikan: '自分の手番のはじめに米を1得る。',
+  kura: '一揆のときの供出を免れる。',
+  hatamoto: '常に威信+1。',
 };
 
 export const COLORS = {

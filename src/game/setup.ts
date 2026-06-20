@@ -1,8 +1,8 @@
-import { CARD_DECK_COUNTS, PIECE_LIMITS, PLAYER_COLORS } from '../config/rules';
-import { shuffle } from '../utils/random';
+import { PIECE_LIMITS, PLAYER_COLORS } from '../config/rules';
 import { assignPorts, assignTerrainAndTokens, buildBoardGeometry } from './board';
 import { emptyResources, addResources } from './resources';
-import { CardType, GameState, Player, PlayerId, ResourceType, TerrainType } from './types';
+import { buildVassalDeck } from './vassals';
+import { GameState, Player, PlayerId, ResourceType, TerrainType } from './types';
 
 export function terrainResource(t: TerrainType): ResourceType | null {
   switch (t) {
@@ -13,14 +13,6 @@ export function terrainResource(t: TerrainType): ResourceType | null {
     case 'mine': return 'iron';
     case 'wasteland': return null;
   }
-}
-
-function buildDeck(): CardType[] {
-  const deck: CardType[] = [];
-  (Object.keys(CARD_DECK_COUNTS) as CardType[]).forEach((t) => {
-    for (let i = 0; i < CARD_DECK_COUNTS[t]; i++) deck.push(t);
-  });
-  return shuffle(deck);
 }
 
 export interface CreateGameConfig {
@@ -37,10 +29,8 @@ export function createInitialGame(config: CreateGameConfig): GameState {
     isAI: p.isAI,
     color: PLAYER_COLORS[i % PLAYER_COLORS.length],
     resources: emptyResources(),
-    cards: [],
-    cardsBoughtThisTurn: [],
+    vassals: [],
     playedWarlords: 0,
-    hasPlayedCardThisTurn: false,
     piecesLeft: { road: PIECE_LIMITS.road, fort: PIECE_LIMITS.fort, castle: PIECE_LIMITS.castle },
   }));
 
@@ -57,12 +47,11 @@ export function createInitialGame(config: CreateGameConfig): GameState {
     banditHexId: banditHex.id,
     players,
     currentPlayer: snakeOrder[0],
-    deck: buildDeck(),
+    vassalDeck: buildVassalDeck(),
     dice: null,
     largestArmyHolder: null,
     pendingTrade: null,
     discardQueue: [],
-    freeRoadsLeft: 0,
     setup: {
       order: snakeOrder,
       index: 0,

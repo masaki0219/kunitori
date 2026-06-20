@@ -1,4 +1,4 @@
-import { ResourceType } from '../game/types';
+import { ResourceType, VassalId } from '../game/types';
 
 // 到達可能性維持のため当面10。12化はRUNBOOK §6に従い後で。
 export const WIN_PRESTIGE = 10;
@@ -12,7 +12,7 @@ export const COSTS = {
 
 export const PIECE_LIMITS = { road: 15, fort: 5, castle: 4 } as const;
 
-export const PRESTIGE = { fort: 1, castle: 2, network: 2, largestArmy: 2, merit: 1 } as const;
+export const PRESTIGE = { fort: 1, castle: 2, network: 2, largestArmy: 2 } as const;
 
 export const NETWORK_MIN = 3;
 export const LARGEST_ARMY_MIN = 3;
@@ -27,9 +27,9 @@ export const TERRAIN_COUNTS = {
   forest: 4, pasture: 4, paddy: 4, quarry: 3, mine: 3, wasteland: 1,
 } as const;
 
-// 軍略カード山札（合計25）
-export const CARD_DECK_COUNTS = {
-  warlord: 14, merit: 5, construction: 2, harvest: 2, requisition: 2,
+// 家臣山札（合計22）。バランスは後で調整可。
+export const VASSAL_DECK_COUNTS: Record<VassalId, number> = {
+  fushin: 3, gunshi: 3, kaisen: 3, daikan: 4, kura: 3, hatamoto: 6,
 } as const;
 
 export const PLAYER_COLORS = ['#C2541A', '#1F3A7A', '#5C8A3A', '#6B3FA0'];

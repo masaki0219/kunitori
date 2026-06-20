@@ -17,7 +17,7 @@ export default function ResultScreen() {
       points: computePrestige(state, p.id),
       forts: state.buildings.filter((b) => b.owner === p.id && b.type === 'fort').length,
       castles: state.buildings.filter((b) => b.owner === p.id && b.type === 'castle').length,
-      merits: p.cards.filter((c) => c === 'merit').length,
+      vassalCount: p.vassals.length,
       network: hasStrongholdNetwork(state, p.id),
       largestArmy: state.largestArmyHolder === p.id,
     }))
@@ -36,7 +36,7 @@ export default function ResultScreen() {
             <Text style={styles.rank}>{i + 1}位　{r.player.name}（{r.points}点）</Text>
             <Text style={styles.detail}>砦 {r.forts} ／ 城 {r.castles}</Text>
             <Text style={styles.detail}>街道網 {r.network ? '○' : '−'} ／ 最大兵力 {r.largestArmy ? '○' : '−'}</Text>
-            <Text style={styles.detail}>軍功 {r.merits}</Text>
+            <Text style={styles.detail}>家臣 {r.vassalCount}</Text>
           </View>
         ))}
 

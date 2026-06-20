@@ -192,8 +192,8 @@ async function runMainPhase(): Promise<void> {
     }
 
     const player = state.players.find((p) => p.id === state.currentPlayer)!;
-    if (state.deck.length > 0 && canAfford(player.resources, COSTS.card)) {
-      useGameStore.getState().buyCard();
+    if (state.vassalDeck.length > 0 && canAfford(player.resources, COSTS.card)) {
+      useGameStore.getState().recruitVassal();
       await delay(400);
       continue;
     }
@@ -236,16 +236,6 @@ export async function runAITurn(): Promise<void> {
   const player = state.players.find((p) => p.id === state.currentPlayer)!;
   if (!player.isAI) return;
 
-  const warlordCount = player.cards.filter((c) => c === 'warlord').length;
-  if (warlordCount >= 2 && !player.cardsBoughtThisTurn.includes('warlord')) {
-    const index = player.cards.indexOf('warlord');
-    if (index >= 0) {
-      useGameStore.getState().playCard(index);
-      await delay(400);
-    }
-  }
-
-  state = useGameStore.getState();
   if (state.phase === 'moveBandit') {
     const hexId = chooseBanditHex(state);
     useGameStore.getState().moveBandit(hexId);

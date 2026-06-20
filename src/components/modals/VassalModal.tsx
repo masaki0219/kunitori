@@ -2,49 +2,39 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Overlay from './Overlay';
 import { COSTS } from '../../config/rules';
-import { CARD_DESCRIPTIONS, CARD_LABELS } from '../../config/labels';
-import { canPlayCard } from '../../game/cards';
+import { VASSAL_DESCRIPTIONS, VASSAL_LABELS } from '../../config/labels';
 import { canAfford } from '../../game/resources';
-import { CardType, GameState } from '../../game/types';
+import { GameState, VassalId } from '../../game/types';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
 interface Props {
   state: GameState;
-  onBuy: () => void;
-  onPlay: (index: number) => void;
+  onRecruit: () => void;
   onClose: () => void;
 }
 
-export default function CardModal({ state, onBuy, onPlay, onClose }: Props) {
+export default function VassalModal({ state, onRecruit, onClose }: Props) {
   const player = state.players.find((p) => p.id === state.currentPlayer)!;
-  const canBuy = state.deck.length > 0 && canAfford(player.resources, COSTS.card);
+  const canRecruit = state.vassalDeck.length > 0 && canAfford(player.resources, COSTS.card);
 
   return (
     <Overlay onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>軍略カード</Text>
-          <Pressable style={[styles.buyButton, !canBuy && styles.disabled]} disabled={!canBuy} onPress={onBuy}>
-            <Text style={styles.buyText}>購入（米1・鉄1・馬1）{state.deck.length === 0 ? '（山札なし）' : ''}</Text>
+          <Text style={styles.title}>家臣</Text>
+          <Pressable style={[styles.buyButton, !canRecruit && styles.disabled]} disabled={!canRecruit} onPress={onRecruit}>
+            <Text style={styles.buyText}>登用（米1・鉄1・馬1）{state.vassalDeck.length === 0 ? '（山札なし）' : ''}</Text>
           </Pressable>
 
           <ScrollView style={{ marginTop: 12 }}>
-            {player.cards.map((c: CardType, i: number) => {
-              const playable = canPlayCard(state, i);
-              return (
-                <View key={i} style={styles.cardRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.cardName}>{CARD_LABELS[c]}</Text>
-                    <Text style={styles.cardDesc}>{CARD_DESCRIPTIONS[c]}</Text>
-                  </View>
-                  {c !== 'merit' ? (
-                    <Pressable style={[styles.useButton, !playable && styles.disabled]} disabled={!playable} onPress={() => onPlay(i)}>
-                      <Text style={styles.useText}>使う</Text>
-                    </Pressable>
-                  ) : null}
+            {player.vassals.map((id: VassalId, i: number) => (
+              <View key={i} style={styles.cardRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardName}>{VASSAL_LABELS[id]}</Text>
+                  <Text style={styles.cardDesc}>{VASSAL_DESCRIPTIONS[id]}</Text>
                 </View>
-              );
-            })}
+              </View>
+            ))}
           </ScrollView>
 
           <Pressable style={styles.closeButton} onPress={onClose}>
@@ -66,7 +56,5 @@ const styles = StyleSheet.create({
   cardRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.sm, borderBottomWidth: 1, borderColor: PALETTE.washiDark, gap: 8 },
   cardName: { fontWeight: 'bold', color: PALETTE.ink },
   cardDesc: { fontSize: 11, color: PALETTE.inkSoft },
-  useButton: { backgroundColor: PALETTE.vermilion, borderRadius: RADIUS.sm, paddingVertical: 8, paddingHorizontal: 12 },
-  useText: { color: '#fff', fontWeight: 'bold' },
   closeButton: { alignItems: 'center', marginTop: SPACING.sm, padding: SPACING.sm },
 });

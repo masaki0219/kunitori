@@ -35,7 +35,7 @@ export default function PlayerHandPanel({ style, state, compact }: Props) {
           <Vp size={compact ? 12 : 14} />
           <Text style={styles.scoreText}>{points}</Text>
           <Ionicons name="star" size={compact ? 11 : 13} color={PALETTE.gold} style={{ marginLeft: SPACING.xs }} />
-          <Text style={styles.scoreText}>{me.cards.length}</Text>
+          <Text style={styles.scoreText}>{me.vassals.length}</Text>
         </View>
       </View>
 

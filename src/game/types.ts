@@ -9,7 +9,7 @@ export type TerrainType =
   | 'mine'      // 鉄
   | 'wasteland';// 無産出
 
-export type CardType = 'warlord' | 'merit' | 'construction' | 'harvest' | 'requisition';
+export type VassalId = 'fushin' | 'gunshi' | 'kaisen' | 'daikan' | 'kura' | 'hatamoto';
 
 export type BuildingType = 'fort' | 'castle';
 
@@ -79,10 +79,8 @@ export interface Player {
   isAI: boolean;
   color: string;                 // 表示色
   resources: Resources;          // 手札
-  cards: CardType[];             // 所持する軍略カード（未公開含む）
-  cardsBoughtThisTurn: CardType[]; // 今手番に購入したカード（同手番使用不可の判定用）
+  vassals: VassalId[];           // 登用済みの家臣（常時公開）
   playedWarlords: number;        // プレイ済み武将枚数（最大兵力用）
-  hasPlayedCardThisTurn: boolean;// 1手番1枚制限の判定用
   piecesLeft: { road: number; fort: number; castle: number };
 }
 
@@ -116,12 +114,11 @@ export interface GameState {
   banditHexId: number;            // 野盗のいるヘクスID
   players: Player[];
   currentPlayer: PlayerId;
-  deck: CardType[];               // 山札（引く順）
+  vassalDeck: VassalId[];          // 家臣山札（登用する順）
   dice: [number, number] | null;  // 直近の出目
   largestArmyHolder: PlayerId | null;
   pendingTrade: PendingTrade | null;
   discardQueue: PlayerId[];       // 7のとき破棄が必要な人の待ち行列
-  freeRoadsLeft: number;          // 普請カードの無料街道残数
   // 初期配置の進行管理
   setup: {
     order: PlayerId[];            // スネーク順（往復済みの完全列）

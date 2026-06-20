@@ -1,9 +1,9 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Overlay from './Overlay';
-import { CARD_DESCRIPTIONS, CARD_LABELS, formatCost, RESOURCE_LABELS, TERRAIN_LABELS } from '../../config/labels';
+import { VASSAL_DESCRIPTIONS, VASSAL_LABELS, formatCost, RESOURCE_LABELS, TERRAIN_LABELS } from '../../config/labels';
 import { BANK_TRADE_RATE, COSTS, GENERIC_PORT_COUNT, HAND_LIMIT_FOR_DISCARD, LARGEST_ARMY_MIN, NETWORK_MIN, PIECE_LIMITS, PORT_RATES, PRESTIGE, SPECIFIC_PORT_RESOURCES, WIN_PRESTIGE } from '../../config/rules';
-import { CardType } from '../../game/types';
+import { VassalId } from '../../game/types';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
 interface Props {
@@ -19,7 +19,7 @@ const TERRAIN_TO_RESOURCE: Record<string, string> = {
   wasteland: 'なし',
 };
 
-const CARD_ORDER: CardType[] = ['warlord', 'merit', 'construction', 'harvest', 'requisition'];
+const VASSAL_ORDER: VassalId[] = ['fushin', 'gunshi', 'kaisen', 'daikan', 'kura', 'hatamoto'];
 
 export default function RulesModal({ onClose }: Props) {
   return (
@@ -45,7 +45,7 @@ export default function RulesModal({ onClose }: Props) {
               <Line>街道: {formatCost(COSTS.road)}（残り{PIECE_LIMITS.road}本まで）</Line>
               <Line>砦: {formatCost(COSTS.fort)}（残り{PIECE_LIMITS.fort}個まで・{PRESTIGE.fort}点）</Line>
               <Line>城（砦の昇格）: {formatCost(COSTS.castle)}（残り{PIECE_LIMITS.castle}個まで・{PRESTIGE.castle}点）</Line>
-              <Line>軍略カード: {formatCost(COSTS.card)}</Line>
+              <Line>家臣: {formatCost(COSTS.card)}</Line>
             </Section>
 
             <Section title="交易">
@@ -59,12 +59,11 @@ export default function RulesModal({ onClose }: Props) {
               <Line>砦: {PRESTIGE.fort}点 / 城: {PRESTIGE.castle}点</Line>
               <Line>街道網：自分の街道で拠点を{NETWORK_MIN}つ以上つなぐと威信+{PRESTIGE.network}</Line>
               <Line>最大兵力（武将{LARGEST_ARMY_MIN}枚以上で獲得）: {PRESTIGE.largestArmy}点</Line>
-              <Line>軍功カード: {PRESTIGE.merit}点</Line>
             </Section>
 
-            <Section title="軍略カード">
-              {CARD_ORDER.map((c) => (
-                <Line key={c}>{CARD_LABELS[c]}: {CARD_DESCRIPTIONS[c]}</Line>
+            <Section title="家臣">
+              {VASSAL_ORDER.map((id) => (
+                <Line key={id}>{VASSAL_LABELS[id]}: {VASSAL_DESCRIPTIONS[id]}</Line>
               ))}
             </Section>
 

@@ -47,7 +47,7 @@ export default function PlayerPanel({ state, style, compact }: Props) {
               <Vp size={compact ? 11 : 13} />
               <Text style={styles.scoreText}>{visiblePoints(state, p.id)}</Text>
               <Ionicons name="star" size={compact ? 10 : 12} color={PALETTE.goldLight} style={{ marginLeft: SPACING.sm }} />
-              <Text style={styles.scoreText}>{p.cards.length}</Text>
+              <Text style={styles.scoreText}>{p.vassals.length}</Text>
               <Ionicons name="albums" size={compact ? 11 : 13} color={PALETTE.washi} style={{ marginLeft: SPACING.sm }} />
               <Text style={styles.scoreText}>{handCount}</Text>
             </View>

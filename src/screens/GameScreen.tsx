@@ -9,8 +9,7 @@ import EventLog from '../components/Hud/EventLog';
 import PlayerHandPanel from '../components/Hud/PlayerHandPanel';
 import PlayerPanel from '../components/Hud/PlayerPanel';
 import TopBar from '../components/Hud/TopBar';
-import CardModal from '../components/modals/CardModal';
-import DevCardEffectModal from '../components/modals/DevCardEffectModal';
+import VassalModal from '../components/modals/VassalModal';
 import DiscardModal from '../components/modals/DiscardModal';
 import RulesModal from '../components/modals/RulesModal';
 import StealTargetModal from '../components/modals/StealTargetModal';
@@ -47,7 +46,6 @@ export default function GameScreen() {
   const [showTrade, setShowTrade] = useState(false);
   const [showCards, setShowCards] = useState(false);
   const [showRules, setShowRules] = useState(false);
-  const [devCardEffect, setDevCardEffect] = useState<{ mode: 'harvest' | 'requisition'; index: number } | null>(null);
   const aiRunning = useRef(false);
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -144,7 +142,7 @@ export default function GameScreen() {
       return;
     }
     if (state.phase !== 'main') return;
-    if (buildMode === 'road') { dispatch({ t: 'buildRoad', edgeId }); if (state.freeRoadsLeft <= 1) setBuildMode(null); }
+    if (buildMode === 'road') { dispatch({ t: 'buildRoad', edgeId }); setBuildMode(null); }
   };
 
   const onHexPress = (hexId: number) => {
@@ -170,16 +168,6 @@ export default function GameScreen() {
     rice: effectiveTradeRate(state, currentPlayer.id, 'rice'),
     horse: effectiveTradeRate(state, currentPlayer.id, 'horse'),
     iron: effectiveTradeRate(state, currentPlayer.id, 'iron'),
-  };
-
-  const handlePlayCard = (index: number) => {
-    const card = currentPlayer.cards[index];
-    if (card === 'harvest' || card === 'requisition') {
-      setDevCardEffect({ mode: card, index });
-    } else {
-      dispatch({ t: 'playCard', index });
-      if (card === 'warlord') setShowCards(false);
-    }
   };
 
   return (
@@ -310,26 +298,10 @@ export default function GameScreen() {
       ) : null}
 
       {showCards ? (
-        <CardModal
+        <VassalModal
           state={state}
-          onBuy={() => dispatch({ t: 'buyCard' })}
-          onPlay={handlePlayCard}
+          onRecruit={() => dispatch({ t: 'recruitVassal' })}
           onClose={() => setShowCards(false)}
-        />
-      ) : null}
-
-      {devCardEffect ? (
-        <DevCardEffectModal
-          mode={devCardEffect.mode}
-          onConfirmHarvest={(picks: ResourceType[]) => {
-            dispatch({ t: 'playCard', index: devCardEffect.index, payload: { picks } });
-            setDevCardEffect(null);
-          }}
-          onConfirmRequisition={(resource: ResourceType) => {
-            dispatch({ t: 'playCard', index: devCardEffect.index, payload: { resource } });
-            setDevCardEffect(null);
-          }}
-          onCancel={() => setDevCardEffect(null)}
         />
       ) : null}
 

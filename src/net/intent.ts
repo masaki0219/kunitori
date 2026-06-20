@@ -15,8 +15,7 @@ export function applyIntentOnHost(intent: Intent): void {
     case 'buildRoad':      s.buildRoad(intent.edgeId); break;
     case 'buildFort':      s.buildFort(intent.vertexId); break;
     case 'buildCastle':    s.buildCastle(intent.vertexId); break;
-    case 'buyCard':        s.buyCard(); break;
-    case 'playCard':       s.playCard(intent.index, intent.payload); break;
+    case 'recruitVassal':  s.recruitVassal(); break;
     case 'bankTrade':      s.bankTrade(intent.give, intent.take); break;
     case 'proposeTrade':   s.proposeTrade(intent.toPlayer, intent.give, intent.want); break;
     case 'respondTrade':   s.respondTrade(intent.accept); break;
@@ -39,8 +38,7 @@ export function validateIntent(state: GameState, intent: Intent, fromSeat: Seat)
     case 'buildRoad':
     case 'buildFort':
     case 'buildCastle':
-    case 'buyCard':
-    case 'playCard':
+    case 'recruitVassal':
     case 'bankTrade':
     case 'proposeTrade':
     case 'endTurn':

@@ -1,7 +1,8 @@
-import { HAND_LIMIT_FOR_DISCARD } from '../config/rules';
 import { rollTwoDice } from '../utils/random';
-import { addResources, countResources } from './resources';
+import { needsDiscard } from './bandit';
+import { addResources } from './resources';
 import { terrainResource } from './setup';
+import { turnIncome } from './vassals';
 import { GameState, PlayerId, ResourceType } from './types';
 
 export function produceResources(state: GameState, sum: number): GameState {
@@ -23,17 +24,14 @@ export function produceResources(state: GameState, sum: number): GameState {
 
   const players = state.players.map((p) => {
     const add = gains.get(p.id);
-    if (!add) return p;
-    return { ...p, resources: addResources(p.resources, add) };
+    const fromVassals = turnIncome(p);
+    if (!add && p.id !== state.currentPlayer) return p;
+    let resources = add ? addResources(p.resources, add) : p.resources;
+    if (p.id === state.currentPlayer) resources = addResources(resources, fromVassals);
+    return { ...p, resources };
   });
 
   return { ...state, players };
-}
-
-export function needsDiscard(state: GameState): PlayerId[] {
-  return state.players
-    .filter((p) => countResources(p.resources) >= HAND_LIMIT_FOR_DISCARD)
-    .map((p) => p.id);
 }
 
 export function rollAndProduce(state: GameState): GameState {

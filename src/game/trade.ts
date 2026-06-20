@@ -1,9 +1,11 @@
 import { BANK_TRADE_RATE } from '../config/rules';
 import { canAfford, payCost, addResources } from './resources';
+import { tradeRateDelta } from './vassals';
 import { GameState, PlayerId, ResourceType } from './types';
 
 // プレイヤーが建物を置いている港を考慮した、give 資源の最良（最小）レート
 export function effectiveTradeRate(state: GameState, playerId: PlayerId, give: ResourceType): number {
+  const player = state.players.find((p) => p.id === playerId)!;
   let rate = BANK_TRADE_RATE; // 4
   const myVertexIds = new Set(
     state.buildings.filter((b) => b.owner === playerId).map((b) => b.vertexId)
@@ -14,7 +16,7 @@ export function effectiveTradeRate(state: GameState, playerId: PlayerId, give: R
     if (port.resource === give) rate = Math.min(rate, port.rate);        // 2:1
     else if (port.resource === null) rate = Math.min(rate, port.rate);   // 3:1
   }
-  return rate;
+  return Math.max(2, rate + tradeRateDelta(player));
 }
 
 export function bankTrade(state: GameState, give: ResourceType, take: ResourceType): GameState {

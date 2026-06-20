@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import type { GameState, PlayerId, ResourceType } from '../game/types';
-import type { CardPayload } from '../game/cards';
 
 export type Role = 'host' | 'guest';
 export type Seat = number; // = GameState.players[i].id（0始まり）
@@ -26,8 +25,7 @@ export type Intent =
   | { t: 'buildRoad'; edgeId: number }
   | { t: 'buildFort'; vertexId: number }
   | { t: 'buildCastle'; vertexId: number }
-  | { t: 'buyCard' }
-  | { t: 'playCard'; index: number; payload?: CardPayload }
+  | { t: 'recruitVassal' }
   | { t: 'bankTrade'; give: ResourceType; take: ResourceType }
   | {
       t: 'proposeTrade';
@@ -78,8 +76,7 @@ export const IntentSchema: z.ZodType<Intent> = z.discriminatedUnion('t', [
   z.object({ t: z.literal('buildRoad'), edgeId: z.number() }),
   z.object({ t: z.literal('buildFort'), vertexId: z.number() }),
   z.object({ t: z.literal('buildCastle'), vertexId: z.number() }),
-  z.object({ t: z.literal('buyCard') }),
-  z.object({ t: z.literal('playCard'), index: z.number(), payload: z.any().optional() }),
+  z.object({ t: z.literal('recruitVassal') }),
   z.object({
     t: z.literal('bankTrade'),
     give: z.enum(['timber', 'stone', 'rice', 'horse', 'iron']),

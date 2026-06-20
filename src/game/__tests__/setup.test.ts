@@ -17,7 +17,7 @@ describe('createInitialGame', () => {
     expect(state.players.length).toBe(3);
     expect(state.phase).toBe('setupPlacement');
     expect(state.setup.order).toEqual([0, 1, 2, 2, 1, 0]);
-    expect(state.deck.length).toBe(25);
+    expect(state.vassalDeck.length).toBe(22);
     expect(state.board.hexes.length).toBe(19);
   });
 });

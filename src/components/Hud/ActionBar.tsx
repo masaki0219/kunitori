@@ -99,12 +99,12 @@ export default function ActionBar({
       </Pressable>
       <BuildButton
         icon="cards"
-        label="カード"
+        label="登用"
         color={ACTION_COLORS.card}
         cost={formatCost(COSTS.card)}
         active={false}
         affordable={canBuyCard}
-        badge={player.cards.length}
+        badge={player.vassals.length}
         disabled={disabled}
         compact={compact}
         onPress={onOpenCard}

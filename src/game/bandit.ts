@@ -1,11 +1,12 @@
+import { HAND_LIMIT_FOR_DISCARD } from '../config/rules';
 import { playersAdjacentToHex } from './board';
 import { countResources } from './resources';
+import { isDiscardExempt, stealCount } from './vassals';
 import { GameState, PlayerId, ResourceType } from './types';
 
 export function needsDiscard(state: GameState): PlayerId[] {
-  const HAND_LIMIT = 8;
   return state.players
-    .filter((p) => countResources(p.resources) >= HAND_LIMIT)
+    .filter((p) => !isDiscardExempt(p) && countResources(p.resources) >= HAND_LIMIT_FOR_DISCARD)
     .map((p) => p.id);
 }
 
@@ -54,28 +55,31 @@ export function moveBandit(state: GameState, hexId: number): GameState {
 
 export function stealFrom(state: GameState, targetId: PlayerId): GameState {
   const target = state.players.find((p) => p.id === targetId)!;
-  const total = countResources(target.resources);
-
-  if (total === 0) {
-    return { ...state, phase: 'main' };
-  }
-
-  const ALL_RESOURCES: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
+  const me = state.players.find((p) => p.id === state.currentPlayer)!;
+  const ALL: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
   const pool: ResourceType[] = [];
-  ALL_RESOURCES.forEach((r) => {
-    for (let i = 0; i < target.resources[r]; i++) pool.push(r);
-  });
-  const stolen = pool[Math.floor(Math.random() * pool.length)];
+  ALL.forEach((r) => { for (let i = 0; i < target.resources[r]; i++) pool.push(r); });
+  if (pool.length === 0) return { ...state, phase: 'main' };
 
+  const n = Math.min(stealCount(me), pool.length);
+  const taken: Partial<Record<ResourceType, number>> = {};
+  for (let k = 0; k < n; k++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    const r = pool.splice(idx, 1)[0];
+    taken[r] = (taken[r] ?? 0) + 1;
+  }
   const players = state.players.map((p) => {
     if (p.id === targetId) {
-      return { ...p, resources: { ...p.resources, [stolen]: p.resources[stolen] - 1 } };
+      const res = { ...p.resources };
+      (Object.keys(taken) as ResourceType[]).forEach((r) => { res[r] -= taken[r]!; });
+      return { ...p, resources: res };
     }
     if (p.id === state.currentPlayer) {
-      return { ...p, resources: { ...p.resources, [stolen]: p.resources[stolen] + 1 } };
+      const res = { ...p.resources };
+      (Object.keys(taken) as ResourceType[]).forEach((r) => { res[r] += taken[r]!; });
+      return { ...p, resources: res };
     }
     return p;
   });
-
   return { ...state, players, phase: 'main' };
 }

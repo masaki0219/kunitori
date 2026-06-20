@@ -1,4 +1,5 @@
 import { LARGEST_ARMY_MIN, NETWORK_MIN, PRESTIGE, WIN_PRESTIGE } from '../config/rules';
+import { prestigeFromVassals } from './vassals';
 import { GameState, PlayerId } from './types';
 
 export function computePrestige(state: GameState, playerId: PlayerId): number {
@@ -10,8 +11,7 @@ export function computePrestige(state: GameState, playerId: PlayerId): number {
   if (hasStrongholdNetwork(state, playerId)) points += PRESTIGE.network;
   if (state.largestArmyHolder === playerId) points += PRESTIGE.largestArmy;
 
-  const merits = player.cards.filter((c) => c === 'merit').length;
-  points += merits * PRESTIGE.merit;
+  points += prestigeFromVassals(player);
 
   return points;
 }

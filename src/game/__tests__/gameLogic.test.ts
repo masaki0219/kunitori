@@ -1,9 +1,9 @@
 import { buildBoardGeometry } from '../board';
 import { buildFort, buildRoad, getBuildableEdges, getBuildableVertices, isValidRoad } from '../build';
 import { produceResources } from '../production';
-import { hasStrongholdNetwork } from '../scoring';
+import { computePrestige, hasStrongholdNetwork } from '../scoring';
 import { emptyResources } from '../resources';
-import { bankTrade } from '../trade';
+import { bankTrade, effectiveTradeRate } from '../trade';
 import { GameState, Player } from '../types';
 
 function makePlayer(id: number): Player {
@@ -13,10 +13,8 @@ function makePlayer(id: number): Player {
     isAI: false,
     color: '#000',
     resources: emptyResources(),
-    cards: [],
-    cardsBoughtThisTurn: [],
+    vassals: [],
     playedWarlords: 0,
-    hasPlayedCardThisTurn: false,
     piecesLeft: { road: 15, fort: 5, castle: 4 },
   };
 }
@@ -34,12 +32,11 @@ function makeState(): GameState {
     banditHexId: -1,
     players: [makePlayer(0), makePlayer(1)],
     currentPlayer: 0,
-    deck: [],
+    vassalDeck: [],
     dice: null,
     largestArmyHolder: null,
     pendingTrade: null,
     discardQueue: [],
-    freeRoadsLeft: 0,
     setup: { order: [0, 1, 1, 0], index: 4, pendingRoadFromVertex: null },
     winner: null,
     log: [],
@@ -157,5 +154,32 @@ describe('bank trade', () => {
     const next = bankTrade(state, 'timber', 'stone');
     expect(next.players[0].resources.timber).toBe(0);
     expect(next.players[0].resources.stone).toBe(1);
+  });
+});
+
+describe('vassals', () => {
+  it('kaisen (廻船問屋) lowers effectiveTradeRate by 1', () => {
+    const state = makeState();
+    const base = effectiveTradeRate(state, 0, 'timber');
+    state.players[0].vassals = ['kaisen'];
+    expect(effectiveTradeRate(state, 0, 'timber')).toBe(base - 1);
+  });
+
+  it('fushin (普請奉行) reduces road stone cost by 1', () => {
+    let state = makeState();
+    const vertex = state.board.vertices[0];
+    state = { ...state, buildings: [{ vertexId: vertex.id, owner: 0, type: 'fort' }] };
+    state.players[0].vassals = ['fushin'];
+    state.players[0].resources = { timber: 1, stone: 0, rice: 0, horse: 0, iron: 0 };
+    const edgeId = vertex.edgeIds[0];
+    const next = buildRoad(state, edgeId);
+    expect(next.roads.length).toBe(1);
+  });
+
+  it('hatamoto (旗本) grants +1 prestige', () => {
+    const state = makeState();
+    const before = computePrestige(state, 0);
+    state.players[0].vassals = ['hatamoto'];
+    expect(computePrestige(state, 0)).toBe(before + 1);
   });
 });
