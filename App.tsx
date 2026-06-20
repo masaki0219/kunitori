@@ -1,4 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -13,6 +14,16 @@ import { useGameStore } from './src/store/gameStore';
 
 export default function App() {
   const screen = useGameStore((s) => s.screen);
+
+  // DIAGNOSTIC: 交易ボタンクラッシュ調査用の一時ハンドラ（修正指示書v2 §1 A-1）
+  useEffect(() => {
+    const g: any = globalThis;
+    const prev = g.ErrorUtils?.getGlobalHandler?.();
+    g.ErrorUtils?.setGlobalHandler?.((error: any, isFatal?: boolean) => {
+      console.error('[GLOBAL JS ERROR]', isFatal, error?.message, error?.stack);
+      prev?.(error, isFatal);
+    });
+  }, []);
 
   let content;
   switch (screen) {
