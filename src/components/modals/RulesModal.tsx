@@ -1,7 +1,8 @@
 import React from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Overlay from './Overlay';
 import { CARD_DESCRIPTIONS, CARD_LABELS, formatCost, RESOURCE_LABELS, TERRAIN_LABELS } from '../../config/labels';
-import { BANK_TRADE_RATE, COSTS, HAND_LIMIT_FOR_DISCARD, LARGEST_ARMY_MIN, LONGEST_ROAD_MIN, PIECE_LIMITS, POINTS, WIN_POINTS } from '../../config/rules';
+import { BANK_TRADE_RATE, COSTS, GENERIC_PORT_COUNT, HAND_LIMIT_FOR_DISCARD, LARGEST_ARMY_MIN, LONGEST_ROAD_MIN, PIECE_LIMITS, PORT_RATES, POINTS, SPECIFIC_PORT_RESOURCES, WIN_POINTS } from '../../config/rules';
 import { CardType } from '../../game/types';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
@@ -22,7 +23,7 @@ const CARD_ORDER: CardType[] = ['warlord', 'merit', 'construction', 'harvest', '
 
 export default function RulesModal({ onClose }: Props) {
   return (
-    <Modal transparent animationType="fade">
+    <Overlay onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.card}>
           <Text style={styles.title}>ルール早見表</Text>
@@ -49,6 +50,8 @@ export default function RulesModal({ onClose }: Props) {
 
             <Section title="交易">
               <Line>銀行交易: 同じ資源{BANK_TRADE_RATE}個 → 好きな資源1個</Line>
+              <Line>港: 海岸に砦/城を置くとレートが優遇される（{PORT_RATES.specific}:1の資源指定港{SPECIFIC_PORT_RESOURCES.length}個・{PORT_RATES.generic}:1の汎用港{GENERIC_PORT_COUNT}個）</Line>
+              <Line>港を持たない資源は{BANK_TRADE_RATE}:1のまま</Line>
               <Line>他プレイヤーとの交易も提案できる</Line>
             </Section>
 
@@ -76,7 +79,7 @@ export default function RulesModal({ onClose }: Props) {
           </Pressable>
         </View>
       </View>
-    </Modal>
+    </Overlay>
   );
 }
 

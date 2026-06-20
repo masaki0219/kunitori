@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Overlay from './Overlay';
 import { BANK_TRADE_RATE } from '../../config/rules';
 import { RESOURCE_LABELS } from '../../config/labels';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
@@ -8,6 +9,7 @@ import { Player, PlayerId, ResourceType } from '../../game/types';
 interface Props {
   currentPlayer: Player;
   otherPlayers: Player[];
+  rates: Record<ResourceType, number>;
   onBankTrade: (give: ResourceType, take: ResourceType) => void;
   onProposeTrade: (toPlayer: PlayerId, give: Partial<Record<ResourceType, number>>, want: Partial<Record<ResourceType, number>>) => void;
   onClose: () => void;
@@ -15,7 +17,7 @@ interface Props {
 
 const ORDER: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
 
-export default function TradeModal({ currentPlayer, otherPlayers, onBankTrade, onProposeTrade, onClose }: Props) {
+export default function TradeModal({ currentPlayer, otherPlayers, rates, onBankTrade, onProposeTrade, onClose }: Props) {
   const [tab, setTab] = useState<'bank' | 'propose'>('bank');
   const [give, setGive] = useState<ResourceType | null>(null);
   const [take, setTake] = useState<ResourceType | null>(null);
@@ -33,10 +35,8 @@ export default function TradeModal({ currentPlayer, otherPlayers, onBankTrade, o
   const bumpWant = (r: ResourceType) => setWantAmt((p) => ({ ...p, [r]: (p[r] ?? 0) + 1 }));
   const dropWant = (r: ResourceType) => setWantAmt((p) => ({ ...p, [r]: Math.max((p[r] ?? 0) - 1, 0) }));
 
-  // Modal は使わない（RN 0.85 + Fabric/New Architecture の <Modal> がネイティブクラッシュの主因と判明したため、
-  // GameScreen の respondOverlay と同様の絶対配置 View オーバーレイに統一）
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="auto">
+    <Overlay onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.card}>
           <View style={styles.tabs}>
@@ -50,18 +50,21 @@ export default function TradeModal({ currentPlayer, otherPlayers, onBankTrade, o
 
           {tab === 'bank' ? (
             <ScrollView>
-              <Text style={styles.label}>出す資源（{BANK_TRADE_RATE}個必要）</Text>
+              <Text style={styles.label}>出す資源（資源ごとのレート分必要）</Text>
               <View style={styles.chipRow}>
-                {ORDER.map((r) => (
-                  <Pressable
-                    key={r}
-                    style={[styles.chip, give === r && styles.chipActive, (currentPlayer.resources?.[r] ?? 0) < BANK_TRADE_RATE && styles.chipDisabled]}
-                    disabled={(currentPlayer.resources?.[r] ?? 0) < BANK_TRADE_RATE}
-                    onPress={() => setGive(r)}
-                  >
-                    <Text>{RESOURCE_LABELS[r]}({currentPlayer.resources?.[r] ?? 0})</Text>
-                  </Pressable>
-                ))}
+                {ORDER.map((r) => {
+                  const rate = rates[r] ?? BANK_TRADE_RATE;
+                  return (
+                    <Pressable
+                      key={r}
+                      style={[styles.chip, give === r && styles.chipActive, (currentPlayer.resources?.[r] ?? 0) < rate && styles.chipDisabled]}
+                      disabled={(currentPlayer.resources?.[r] ?? 0) < rate}
+                      onPress={() => setGive(r)}
+                    >
+                      <Text>{RESOURCE_LABELS[r]} {rate}:1 ({currentPlayer.resources?.[r] ?? 0})</Text>
+                    </Pressable>
+                  );
+                })}
               </View>
               <Text style={styles.label}>もらう資源</Text>
               <View style={styles.chipRow}>
@@ -121,7 +124,7 @@ export default function TradeModal({ currentPlayer, otherPlayers, onBankTrade, o
           </Pressable>
         </View>
       </View>
-    </View>
+    </Overlay>
   );
 }
 

@@ -11,8 +11,8 @@ export default function SeaIsland({ geo }: { geo: BoardGeometry }) {
   const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
   const R = Math.max(...geo.vertices.map((v) => Math.hypot(v.pos.x - cx, v.pos.y - cy)));
 
-  // 旧グラデ海の外周(R + HEX_SIZE*1.7)に少しだけ余白を足した半径で描く
-  const drawR = R + HEX_SIZE * 1.9; // 現状値で ≈ 225（直径 ≈ 450）
+  // 陸の外周（R）＋約1.2ヘクスぶん海を広げる。港のドック・マーカーが収まる帯幅を確保する
+  const drawR = R + HEX_SIZE * 1.2;
 
   return (
     <SvgImage

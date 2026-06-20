@@ -1,6 +1,6 @@
 import { CARD_DECK_COUNTS, PIECE_LIMITS, PLAYER_COLORS } from '../config/rules';
 import { shuffle } from '../utils/random';
-import { assignTerrainAndTokens, buildBoardGeometry } from './board';
+import { assignPorts, assignTerrainAndTokens, buildBoardGeometry } from './board';
 import { emptyResources, addResources } from './resources';
 import { CardType, GameState, Player, PlayerId, ResourceType, TerrainType } from './types';
 
@@ -28,7 +28,7 @@ export interface CreateGameConfig {
 }
 
 export function createInitialGame(config: CreateGameConfig): GameState {
-  const board = assignTerrainAndTokens(buildBoardGeometry());
+  const board = assignPorts(assignTerrainAndTokens(buildBoardGeometry()));
   const banditHex = board.hexes.find((h) => h.terrain === 'wasteland')!;
 
   const players: Player[] = config.players.map((p, i) => ({

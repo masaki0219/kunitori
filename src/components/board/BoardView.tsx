@@ -6,6 +6,7 @@ import { BoardGeometry, BuildingState, Player, RoadState, TerrainType } from '..
 import { TERRAIN_GRADIENTS } from '../../config/theme';
 import BanditMarker from './BanditMarker';
 import HexTile from './HexTile';
+import PortLayer from './PortLayer';
 import RoadLayer from './RoadLayer';
 import SeaIsland from './SeaIsland';
 import VertexLayer from './VertexLayer';
@@ -43,7 +44,7 @@ export default function BoardView({
 }: Props) {
   const { width } = useWindowDimensions();
   const side = size ?? width;
-  const viewBox = boardViewBox(geo, 80); // 海の外周ぶん余白を確保
+  const viewBox = boardViewBox(geo, 44); // 陸地を大きく見せる。海フチ＋港マーカーは SeaIsland/PortLayer 側で付与する
   const banditHex = geo.hexes.find((h) => h.id === banditHexId);
   const selectable = new Set(selectableHexIds ?? []);
 
@@ -59,6 +60,7 @@ export default function BoardView({
       </Defs>
 
       <SeaIsland geo={geo} />
+      <PortLayer geo={geo} />
       {geo.hexes.map((h) => (
         <HexTile key={h.id} hex={h} onPress={onHexPress} selectable={selectable.has(h.id)} />
       ))}

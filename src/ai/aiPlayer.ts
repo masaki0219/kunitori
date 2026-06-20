@@ -1,8 +1,9 @@
-import { COSTS, AI_TRADE_LOOP_LIMIT, BANK_TRADE_RATE } from '../config/rules';
+import { COSTS, AI_TRADE_LOOP_LIMIT } from '../config/rules';
 import { playersAdjacentToHex } from '../game/board';
 import { getBuildableEdges, getBuildableVertices, getUpgradableForts } from '../game/build';
 import { canAfford } from '../game/resources';
 import { computePoints } from '../game/scoring';
+import { effectiveTradeRate } from '../game/trade';
 import { GameState, Player, PlayerId, ResourceType ,Resources} from '../game/types';
 import { useGameStore } from '../store/gameStore';
 
@@ -160,7 +161,7 @@ function tryBankTradeTowardCost(state: GameState, cost: Partial<Record<ResourceT
   for (const need of ALL_RESOURCES) {
     const needed = (cost[need] ?? 0) - player.resources[need];
     if (needed <= 0) continue;
-    const surplus = ALL_RESOURCES.find((r) => r !== need && player.resources[r] >= BANK_TRADE_RATE);
+    const surplus = ALL_RESOURCES.find((r) => r !== need && player.resources[r] >= effectiveTradeRate(state, state.currentPlayer, r));
     if (surplus) {
       store.bankTrade(surplus, need);
       return true;

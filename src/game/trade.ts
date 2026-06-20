@@ -2,15 +2,31 @@ import { BANK_TRADE_RATE } from '../config/rules';
 import { canAfford, payCost, addResources } from './resources';
 import { GameState, PlayerId, ResourceType } from './types';
 
+// プレイヤーが建物を置いている港を考慮した、give 資源の最良（最小）レート
+export function effectiveTradeRate(state: GameState, playerId: PlayerId, give: ResourceType): number {
+  let rate = BANK_TRADE_RATE; // 4
+  const myVertexIds = new Set(
+    state.buildings.filter((b) => b.owner === playerId).map((b) => b.vertexId)
+  );
+  for (const port of state.board.ports) {
+    const owned = port.vertexIds.some((vid) => myVertexIds.has(vid));
+    if (!owned) continue;
+    if (port.resource === give) rate = Math.min(rate, port.rate);        // 2:1
+    else if (port.resource === null) rate = Math.min(rate, port.rate);   // 3:1
+  }
+  return rate;
+}
+
 export function bankTrade(state: GameState, give: ResourceType, take: ResourceType): GameState {
   if (state.phase !== 'main') return state;
   const playerId = state.currentPlayer;
   const player = state.players.find((p) => p.id === playerId)!;
-  if (!canAfford(player.resources, { [give]: BANK_TRADE_RATE })) return state;
+  const rate = effectiveTradeRate(state, playerId, give);
+  if (!canAfford(player.resources, { [give]: rate })) return state;
 
   const players = state.players.map((p) => {
     if (p.id !== playerId) return p;
-    let resources = payCost(p.resources, { [give]: BANK_TRADE_RATE });
+    let resources = payCost(p.resources, { [give]: rate });
     resources = addResources(resources, { [take]: 1 });
     return { ...p, resources };
   });

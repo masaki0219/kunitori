@@ -1,4 +1,4 @@
-import { TERRAIN_COUNTS, NUMBER_TOKENS } from '../config/rules';
+import { GENERIC_PORT_COUNT, NUMBER_TOKENS, PORT_RATES, SPECIFIC_PORT_RESOURCES, TERRAIN_COUNTS } from '../config/rules';
 import { shuffle } from '../utils/random';
 import {
   AxialCoord,
@@ -7,6 +7,8 @@ import {
   GameState,
   Hex,
   PlayerId,
+  Port,
+  ResourceType,
   TerrainType,
   Vertex,
 } from './types';
@@ -121,7 +123,7 @@ export function buildBoardGeometry(size: number = HEX_SIZE): BoardGeometry {
     if (!vb.edgeIds.includes(e.id)) vb.edgeIds.push(e.id);
   }
 
-  return { hexes, vertices, edges };
+  return { hexes, vertices, edges, ports: [] };
 }
 
 export function assignTerrainAndTokens(geo: BoardGeometry): BoardGeometry {
@@ -142,6 +144,62 @@ export function assignTerrainAndTokens(geo: BoardGeometry): BoardGeometry {
   });
 
   return geo;
+}
+
+// 1つのヘクスにしか属さない辺 = 海岸辺
+function coastalEdgeIds(geo: BoardGeometry): number[] {
+  const count = new Map<number, number>();
+  for (const h of geo.hexes) for (const eid of h.edgeIds) {
+    count.set(eid, (count.get(eid) ?? 0) + 1);
+  }
+  return geo.edges.filter((e) => (count.get(e.id) ?? 0) === 1).map((e) => e.id);
+}
+
+export function assignPorts(geo: BoardGeometry): BoardGeometry {
+  const xs = geo.vertices.map((v) => v.pos.x);
+  const ys = geo.vertices.map((v) => v.pos.y);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+
+  const coastal = coastalEdgeIds(geo);
+  // 角度順ソート（辺の中点で）
+  const withAngle = coastal.map((eid) => {
+    const e = geo.edges[eid];
+    const mx = (e.pos.x1 + e.pos.x2) / 2, my = (e.pos.y1 + e.pos.y2) / 2;
+    return { eid, angle: Math.atan2(my - cy, mx - cx) };
+  }).sort((a, b) => a.angle - b.angle);
+
+  const total = SPECIFIC_PORT_RESOURCES.length + GENERIC_PORT_COUNT; // 9
+  // 等間隔に間引いて total 個選ぶ（隣接回避のため step は2以上を目安に）
+  const step = Math.max(2, Math.floor(withAngle.length / total));
+  const chosen: number[] = [];
+  for (let i = 0; chosen.length < total && i < withAngle.length; i += step) {
+    chosen.push(withAngle[i].eid);
+  }
+
+  // レート/資源の割り当て（資源2:1 → 汎用3:1）
+  const specs = shuffle([...SPECIFIC_PORT_RESOURCES]);
+  const slots: { rate: number; resource: ResourceType | null }[] = [
+    ...specs.map((r) => ({ rate: PORT_RATES.specific as number, resource: r })),
+    ...Array.from({ length: GENERIC_PORT_COUNT }, () => ({ rate: PORT_RATES.generic as number, resource: null })),
+  ];
+
+  const ports: Port[] = chosen.map((eid, i) => {
+    const e = geo.edges[eid];
+    const mx = (e.pos.x1 + e.pos.x2) / 2, my = (e.pos.y1 + e.pos.y2) / 2;
+    const len = Math.hypot(mx - cx, my - cy) || 1;
+    const off = 0.8 * HEX_SIZE;
+    return {
+      id: i,
+      edgeId: eid,
+      vertexIds: [e.vertexIds[0], e.vertexIds[1]] as [number, number],
+      rate: slots[i].rate,
+      resource: slots[i].resource,
+      markerPos: { x: mx + (mx - cx) / len * off, y: my + (my - cy) / len * off },
+    };
+  });
+
+  return { ...geo, ports };
 }
 
 export function boardViewBox(geo: BoardGeometry, pad: number = 24): string {

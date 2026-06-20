@@ -1,8 +1,13 @@
 import React from 'react';
 import { act, create } from 'react-test-renderer';
 import TradeModal from '../TradeModal';
+import { BANK_TRADE_RATE } from '../../../config/rules';
 import { emptyResources } from '../../../game/resources';
-import { Player } from '../../../game/types';
+import { Player, ResourceType } from '../../../game/types';
+
+const DEFAULT_RATES: Record<ResourceType, number> = {
+  timber: BANK_TRADE_RATE, stone: BANK_TRADE_RATE, rice: BANK_TRADE_RATE, horse: BANK_TRADE_RATE, iron: BANK_TRADE_RATE,
+};
 
 function makePlayer(id: number, overrides: Partial<Player> = {}): Player {
   return {
@@ -34,6 +39,7 @@ describe('TradeModal render (crash diagnosis)', () => {
           <TradeModal
             currentPlayer={currentPlayer}
             otherPlayers={otherPlayers}
+            rates={DEFAULT_RATES}
             onBankTrade={() => {}}
             onProposeTrade={() => {}}
             onClose={() => {}}
@@ -53,6 +59,7 @@ describe('TradeModal render (crash diagnosis)', () => {
           <TradeModal
             currentPlayer={currentPlayer}
             otherPlayers={[]}
+            rates={DEFAULT_RATES}
             onBankTrade={() => {}}
             onProposeTrade={() => {}}
             onClose={() => {}}
@@ -70,6 +77,7 @@ describe('TradeModal render (crash diagnosis)', () => {
           <TradeModal
             currentPlayer={currentPlayer}
             otherPlayers={[makePlayer(1)]}
+            rates={DEFAULT_RATES}
             onBankTrade={() => {}}
             onProposeTrade={() => {}}
             onClose={() => {}}

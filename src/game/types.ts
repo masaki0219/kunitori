@@ -44,10 +44,20 @@ export interface Edge {
   pos: { x1: number; y1: number; x2: number; y2: number }; // 描画用
 }
 
+export interface Port {
+  id: number;
+  edgeId: number;                 // 接岸する海岸辺（この辺の両端が港の対象頂点）
+  vertexIds: [number, number];    // 港の恩恵を得られる2頂点（= 辺の両端）
+  rate: number;                   // 2 または 3
+  resource: ResourceType | null;  // 2:1なら対象資源、3:1(汎用)なら null
+  markerPos: { x: number; y: number }; // 描画用：海側のマーカー位置
+}
+
 export interface BoardGeometry {
   hexes: Hex[];
   vertices: Vertex[];
   edges: Edge[];
+  ports: Port[];
 }
 
 // ===== 盤面上の建物の状態 =====

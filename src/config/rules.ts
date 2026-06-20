@@ -34,3 +34,10 @@ export const CARD_DECK_COUNTS = {
 export const PLAYER_COLORS = ['#C2541A', '#1F3A7A', '#5C8A3A', '#6B3FA0'];
 
 export const AI_TRADE_LOOP_LIMIT = 4;
+
+// 港のレート
+export const PORT_RATES = { specific: 2, generic: 3 } as const;
+
+// 港の構成：各資源の 2:1 を1つずつ（5個）＋ 汎用 3:1 を4個 = 合計9
+export const SPECIFIC_PORT_RESOURCES: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
+export const GENERIC_PORT_COUNT = 4;

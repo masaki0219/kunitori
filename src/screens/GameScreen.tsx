@@ -20,6 +20,7 @@ import { TABLE_IMAGE } from '../config/assets';
 import { playersAdjacentToHex } from '../game/board';
 import { getBuildableEdges, getBuildableVertices } from '../game/build';
 import { isValidSetupFort } from '../game/setup';
+import { effectiveTradeRate } from '../game/trade';
 import { ResourceType } from '../game/types';
 import { useGameStore } from '../store/gameStore';
 import { aiEvaluateTrade } from '../ai/aiPlayer';
@@ -53,10 +54,12 @@ export default function GameScreen() {
   const compact = height < 600;
   const topReserve = TOP_RESERVE + insets.top;
   const bottomReserve = BOTTOM_RESERVE + insets.bottom;
+  // 盤面サイズ：横幅主導で大きく取り、上下は「海のフチ」だけ HUD の下に潜り込むのを許容する。
+  // 陸地は SVG の中央 ~75% に収まるため、SVG 自体を安全域より少し大きくしても陸は被らない。
   const boardSize = Math.min(
-    height - topReserve - bottomReserve,
-    width * 0.62,
-    560
+    width * 0.80,                          // 横：左右パネルの隙間に収まる上限
+    height - insets.top - insets.bottom,   // 縦：ほぼ全高（海フチが上下HUDへ僅かにはみ出す）
+    720                                    // 巨大化しすぎ防止の上限
   );
 
   const currentPlayer = state.players.find((p) => p.id === state.currentPlayer);
@@ -160,6 +163,14 @@ export default function GameScreen() {
     : [];
 
   const turnName = state.players[state.currentPlayer]?.name ?? '';
+
+  const tradeRates: Record<ResourceType, number> = {
+    timber: effectiveTradeRate(state, currentPlayer.id, 'timber'),
+    stone: effectiveTradeRate(state, currentPlayer.id, 'stone'),
+    rice: effectiveTradeRate(state, currentPlayer.id, 'rice'),
+    horse: effectiveTradeRate(state, currentPlayer.id, 'horse'),
+    iron: effectiveTradeRate(state, currentPlayer.id, 'iron'),
+  };
 
   const handlePlayCard = (index: number) => {
     const card = currentPlayer.cards[index];
@@ -276,6 +287,7 @@ export default function GameScreen() {
         <TradeModal
           currentPlayer={currentPlayer}
           otherPlayers={state.players.filter((p) => p.id !== currentPlayer.id)}
+          rates={tradeRates}
           onBankTrade={(give, take) => {
             try { dispatch({ t: 'bankTrade', give, take }); }
             catch (e) { console.error('[bankTrade] crash', e); }
