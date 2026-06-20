@@ -2,7 +2,7 @@ import { COSTS, AI_TRADE_LOOP_LIMIT } from '../config/rules';
 import { playersAdjacentToHex } from '../game/board';
 import { getBuildableEdges, getBuildableVertices, getUpgradableForts } from '../game/build';
 import { canAfford } from '../game/resources';
-import { computePoints } from '../game/scoring';
+import { computePrestige } from '../game/scoring';
 import { effectiveTradeRate } from '../game/trade';
 import { GameState, Player, PlayerId, ResourceType ,Resources} from '../game/types';
 import { useGameStore } from '../store/gameStore';
@@ -82,7 +82,7 @@ export function autoDiscard(player: Player): Partial<Record<ResourceType, number
 
 export function chooseBanditHex(state: GameState): number {
   const others = state.players.filter((p) => p.id !== state.currentPlayer);
-  const leader = others.reduce((best, p) => (computePoints(state, p.id) > computePoints(state, best.id) ? p : best), others[0]);
+  const leader = others.reduce((best, p) => (computePrestige(state, p.id) > computePrestige(state, best.id) ? p : best), others[0]);
 
   const candidates = state.board.hexes.filter((h) => h.id !== state.banditHexId);
   let best = candidates[0];

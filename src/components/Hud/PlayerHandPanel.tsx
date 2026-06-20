@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GameState, ResourceType } from '../../game/types';
-import { computePoints } from '../../game/scoring';
+import { computePrestige } from '../../game/scoring';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 import { AVATAR_IMAGES } from '../../config/assets';
 import Avatar from '../icons/Avatar';
@@ -20,7 +20,7 @@ const ORDER: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
 export default function PlayerHandPanel({ style, state, compact }: Props) {
   const me = state.players.find((p) => p.id === state.currentPlayer);
   if (!me) return null;
-  const points = computePoints(state, me.id);
+  const points = computePrestige(state, me.id);
   const avatarSize = compact ? 32 : 40;
   const cardSize = compact ? 38 : 48;
 

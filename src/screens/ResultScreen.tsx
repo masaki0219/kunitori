@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER } from '../config/theme';
-import { computePoints } from '../game/scoring';
+import { computePrestige } from '../game/scoring';
 import { useGameStore } from '../store/gameStore';
 
 export default function ResultScreen() {
@@ -14,7 +14,7 @@ export default function ResultScreen() {
   const ranking = [...players]
     .map((p) => ({
       player: p,
-      points: computePoints(state, p.id),
+      points: computePrestige(state, p.id),
       forts: state.buildings.filter((b) => b.owner === p.id && b.type === 'fort').length,
       castles: state.buildings.filter((b) => b.owner === p.id && b.type === 'castle').length,
       merits: p.cards.filter((c) => c === 'merit').length,

@@ -1,6 +1,7 @@
 import { ResourceType } from '../game/types';
 
-export const WIN_POINTS = 10;
+// 到達可能性維持のため当面10。12化はRUNBOOK §6に従い後で。
+export const WIN_PRESTIGE = 10;
 
 export const COSTS = {
   road:   { timber: 1, stone: 1 } as Partial<Record<ResourceType, number>>,
@@ -11,7 +12,7 @@ export const COSTS = {
 
 export const PIECE_LIMITS = { road: 15, fort: 5, castle: 4 } as const;
 
-export const POINTS = { fort: 1, castle: 2, longestRoad: 2, largestArmy: 2, merit: 1 } as const;
+export const PRESTIGE = { fort: 1, castle: 2, longestRoad: 2, largestArmy: 2, merit: 1 } as const;
 
 export const LONGEST_ROAD_MIN = 5;
 export const LARGEST_ARMY_MIN = 3;

@@ -1,17 +1,17 @@
-import { LARGEST_ARMY_MIN, LONGEST_ROAD_MIN, POINTS, WIN_POINTS } from '../config/rules';
+import { LARGEST_ARMY_MIN, LONGEST_ROAD_MIN, PRESTIGE, WIN_PRESTIGE } from '../config/rules';
 import { GameState, PlayerId } from './types';
 
-export function computePoints(state: GameState, playerId: PlayerId): number {
+export function computePrestige(state: GameState, playerId: PlayerId): number {
   const forts = state.buildings.filter((b) => b.owner === playerId && b.type === 'fort').length;
   const castles = state.buildings.filter((b) => b.owner === playerId && b.type === 'castle').length;
   const player = state.players.find((p) => p.id === playerId)!;
 
-  let points = forts * POINTS.fort + castles * POINTS.castle;
-  if (state.longestRoadHolder === playerId) points += POINTS.longestRoad;
-  if (state.largestArmyHolder === playerId) points += POINTS.largestArmy;
+  let points = forts * PRESTIGE.fort + castles * PRESTIGE.castle;
+  if (state.longestRoadHolder === playerId) points += PRESTIGE.longestRoad;
+  if (state.largestArmyHolder === playerId) points += PRESTIGE.largestArmy;
 
   const merits = player.cards.filter((c) => c === 'merit').length;
-  points += merits * POINTS.merit;
+  points += merits * PRESTIGE.merit;
 
   return points;
 }
@@ -115,8 +115,8 @@ export function updateLargestArmy(state: GameState): GameState {
 }
 
 export function checkWin(state: GameState): GameState {
-  const points = computePoints(state, state.currentPlayer);
-  if (points >= WIN_POINTS) {
+  const points = computePrestige(state, state.currentPlayer);
+  if (points >= WIN_PRESTIGE) {
     return { ...state, winner: state.currentPlayer, phase: 'gameOver', screen: 'result' };
   }
   return state;

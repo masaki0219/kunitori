@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Overlay from './Overlay';
 import { CARD_DESCRIPTIONS, CARD_LABELS, formatCost, RESOURCE_LABELS, TERRAIN_LABELS } from '../../config/labels';
-import { BANK_TRADE_RATE, COSTS, GENERIC_PORT_COUNT, HAND_LIMIT_FOR_DISCARD, LARGEST_ARMY_MIN, LONGEST_ROAD_MIN, PIECE_LIMITS, PORT_RATES, POINTS, SPECIFIC_PORT_RESOURCES, WIN_POINTS } from '../../config/rules';
+import { BANK_TRADE_RATE, COSTS, GENERIC_PORT_COUNT, HAND_LIMIT_FOR_DISCARD, LARGEST_ARMY_MIN, LONGEST_ROAD_MIN, PIECE_LIMITS, PORT_RATES, PRESTIGE, SPECIFIC_PORT_RESOURCES, WIN_PRESTIGE } from '../../config/rules';
 import { CardType } from '../../game/types';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
@@ -32,7 +32,7 @@ export default function RulesModal({ onClose }: Props) {
               <Line>1. サイコロを振る → 出た数字のヘクスから資源が配られる</Line>
               <Line>2. 交易・建設・カードの使用を行う</Line>
               <Line>3. 「手番終了」で次のプレイヤーへ</Line>
-              <Line>勝利点が{WIN_POINTS}点に達したプレイヤーが勝利</Line>
+              <Line>勝利点が{WIN_PRESTIGE}点に達したプレイヤーが勝利</Line>
             </Section>
 
             <Section title="資源と地形">
@@ -43,8 +43,8 @@ export default function RulesModal({ onClose }: Props) {
 
             <Section title="建設に必要なもの">
               <Line>街道: {formatCost(COSTS.road)}（残り{PIECE_LIMITS.road}本まで）</Line>
-              <Line>砦: {formatCost(COSTS.fort)}（残り{PIECE_LIMITS.fort}個まで・{POINTS.fort}点）</Line>
-              <Line>城（砦の昇格）: {formatCost(COSTS.castle)}（残り{PIECE_LIMITS.castle}個まで・{POINTS.castle}点）</Line>
+              <Line>砦: {formatCost(COSTS.fort)}（残り{PIECE_LIMITS.fort}個まで・{PRESTIGE.fort}点）</Line>
+              <Line>城（砦の昇格）: {formatCost(COSTS.castle)}（残り{PIECE_LIMITS.castle}個まで・{PRESTIGE.castle}点）</Line>
               <Line>軍略カード: {formatCost(COSTS.card)}</Line>
             </Section>
 
@@ -56,10 +56,10 @@ export default function RulesModal({ onClose }: Props) {
             </Section>
 
             <Section title="得点の種類">
-              <Line>砦: {POINTS.fort}点 / 城: {POINTS.castle}点</Line>
-              <Line>最長街道（{LONGEST_ROAD_MIN}本以上で獲得）: {POINTS.longestRoad}点</Line>
-              <Line>最大兵力（武将{LARGEST_ARMY_MIN}枚以上で獲得）: {POINTS.largestArmy}点</Line>
-              <Line>軍功カード: {POINTS.merit}点</Line>
+              <Line>砦: {PRESTIGE.fort}点 / 城: {PRESTIGE.castle}点</Line>
+              <Line>最長街道（{LONGEST_ROAD_MIN}本以上で獲得）: {PRESTIGE.longestRoad}点</Line>
+              <Line>最大兵力（武将{LARGEST_ARMY_MIN}枚以上で獲得）: {PRESTIGE.largestArmy}点</Line>
+              <Line>軍功カード: {PRESTIGE.merit}点</Line>
             </Section>
 
             <Section title="軍略カード">
