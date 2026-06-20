@@ -30,9 +30,9 @@ export default function RulesModal({ onClose }: Props) {
           <ScrollView style={{ marginTop: 8 }}>
             <Section title="ゲームの流れ">
               <Line>1. サイコロを振る → 出た数字のヘクスから資源が配られる</Line>
-              <Line>2. 交易・建設・カードの使用を行う</Line>
+              <Line>2. 交易・建設・家臣の登用を行う</Line>
               <Line>3. 「手番終了」で次のプレイヤーへ</Line>
-              <Line>勝利点が{WIN_PRESTIGE}点に達したプレイヤーが勝利</Line>
+              <Line>威信が{WIN_PRESTIGE}点に達したプレイヤーが勝利</Line>
             </Section>
 
             <Section title="資源と地形">

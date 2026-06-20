@@ -34,7 +34,7 @@ export interface Vertex {
   id: number;
   pos: { x: number; y: number };   // 描画用ピクセル座標
   hexIds: number[];                // 接するヘクスID（1〜3個）
-  neighborVertexIds: number[];     // 辺で直結する頂点（距離2ルール/最長街道に使う）
+  neighborVertexIds: number[];     // 辺で直結する頂点（距離2ルール/街道網に使う）
   edgeIds: number[];               // この頂点に接する辺
 }
 

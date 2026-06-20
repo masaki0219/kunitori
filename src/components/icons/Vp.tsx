@@ -2,7 +2,7 @@ import React from 'react';
 import Svg, { Path } from 'react-native-svg';
 import { PALETTE } from '../../config/theme';
 
-// 勝利点アイコン：金の盾
+// 威信アイコン：金の盾
 export default function Vp({ size = 16 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 16 16">
