@@ -14,7 +14,7 @@ function makePlayer(id: number): Player {
     color: '#000',
     resources: emptyResources(),
     vassals: [],
-    playedWarlords: 0,
+    raids: 0,
     piecesLeft: { road: 15, fort: 5, castle: 4 },
   };
 }
@@ -34,7 +34,6 @@ function makeState(): GameState {
     currentPlayer: 0,
     vassalDeck: [],
     dice: null,
-    largestArmyHolder: null,
     pendingTrade: null,
     discardQueue: [],
     setup: { order: [0, 1, 1, 0], index: 4, pendingRoadFromVertex: null },

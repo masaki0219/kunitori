@@ -1,4 +1,4 @@
-import { LARGEST_ARMY_MIN, NETWORK_MIN, PRESTIGE, WIN_PRESTIGE } from '../config/rules';
+import { NETWORK_MIN, PRESTIGE, RAID_MIN, WIN_PRESTIGE } from '../config/rules';
 import { prestigeFromVassals } from './vassals';
 import { GameState, PlayerId } from './types';
 
@@ -9,7 +9,7 @@ export function computePrestige(state: GameState, playerId: PlayerId): number {
 
   let points = forts * PRESTIGE.fort + castles * PRESTIGE.castle;
   if (hasStrongholdNetwork(state, playerId)) points += PRESTIGE.network;
-  if (state.largestArmyHolder === playerId) points += PRESTIGE.largestArmy;
+  if (player.raids >= RAID_MIN) points += PRESTIGE.warMerit;
 
   points += prestigeFromVassals(player);
 
@@ -52,25 +52,6 @@ export function hasStrongholdNetwork(state: GameState, playerId: PlayerId): bool
   return false;
 }
 
-export function updateLargestArmy(state: GameState): GameState {
-  const currentHolder = state.largestArmyHolder;
-  const currentCount = currentHolder !== null
-    ? state.players.find((p) => p.id === currentHolder)!.playedWarlords
-    : 0;
-
-  let bestPlayer = currentHolder;
-  let bestCount = currentHolder !== null ? currentCount : 0;
-
-  for (const p of state.players) {
-    if (p.playedWarlords >= LARGEST_ARMY_MIN && p.playedWarlords > bestCount) {
-      bestCount = p.playedWarlords;
-      bestPlayer = p.id;
-    }
-  }
-
-  return { ...state, largestArmyHolder: bestPlayer };
-}
-
 export function checkWin(state: GameState): GameState {
   const points = computePrestige(state, state.currentPlayer);
   if (points >= WIN_PRESTIGE) {
@@ -80,7 +61,5 @@ export function checkWin(state: GameState): GameState {
 }
 
 export function recomputeAfterBuild(state: GameState): GameState {
-  let next = updateLargestArmy(state);
-  next = checkWin(next);
-  return next;
+  return checkWin(state);
 }

@@ -4,6 +4,7 @@ import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { GameState } from '../../game/types';
 import { countResources } from '../../game/resources';
 import { hasStrongholdNetwork } from '../../game/scoring';
+import { RAID_MIN } from '../../config/rules';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER, darken } from '../../config/theme';
 import { AVATAR_IMAGES } from '../../config/assets';
 import Avatar from '../icons/Avatar';
@@ -15,13 +16,14 @@ interface Props {
   compact?: boolean;
 }
 
-// 表示専用：対戦相手には公開情報だけから計算した点を見せる（軍功などの隠し点は含めない）
+// 表示専用：対戦相手には公開情報だけから計算した点を見せる（隠し点は含めない）
 function visiblePoints(state: GameState, id: number): number {
   const forts = state.buildings.filter((b) => b.owner === id && b.type === 'fort').length;
   const castles = state.buildings.filter((b) => b.owner === id && b.type === 'castle').length;
+  const player = state.players.find((p) => p.id === id)!;
   const lr = hasStrongholdNetwork(state, id) ? 2 : 0;
-  const la = state.largestArmyHolder === id ? 2 : 0;
-  return forts * 1 + castles * 2 + lr + la;
+  const wm = player.raids >= RAID_MIN ? 2 : 0;
+  return forts * 1 + castles * 2 + lr + wm;
 }
 
 export default function PlayerPanel({ state, style, compact }: Props) {
@@ -33,7 +35,7 @@ export default function PlayerPanel({ state, style, compact }: Props) {
       {players.map((p) => {
         const isTurn = p.id === state.currentPlayer;
         const hasLongestRoad = hasStrongholdNetwork(state, p.id);
-        const hasLargestArmy = state.largestArmyHolder === p.id;
+        const hasLargestArmy = p.raids >= RAID_MIN;
         const handCount = countResources(p.resources);
         return (
           <View key={p.id} style={[styles.card, { backgroundColor: darken(p.color, 0.15) }, isTurn && styles.cardActive, compact && styles.cardCompact]}>

@@ -20,7 +20,6 @@ function placeholderState(): GameState {
     currentPlayer: 0,
     vassalDeck: [],
     dice: null,
-    largestArmyHolder: null,
     pendingTrade: null,
     discardQueue: [],
     setup: { order: [], index: 0, pendingRoadFromVertex: null },

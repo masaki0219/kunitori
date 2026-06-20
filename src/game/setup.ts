@@ -30,7 +30,7 @@ export function createInitialGame(config: CreateGameConfig): GameState {
     color: PLAYER_COLORS[i % PLAYER_COLORS.length],
     resources: emptyResources(),
     vassals: [],
-    playedWarlords: 0,
+    raids: 0,
     piecesLeft: { road: PIECE_LIMITS.road, fort: PIECE_LIMITS.fort, castle: PIECE_LIMITS.castle },
   }));
 
@@ -49,7 +49,6 @@ export function createInitialGame(config: CreateGameConfig): GameState {
     currentPlayer: snakeOrder[0],
     vassalDeck: buildVassalDeck(),
     dice: null,
-    largestArmyHolder: null,
     pendingTrade: null,
     discardQueue: [],
     setup: {

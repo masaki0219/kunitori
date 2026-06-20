@@ -77,7 +77,7 @@ export function stealFrom(state: GameState, targetId: PlayerId): GameState {
     if (p.id === state.currentPlayer) {
       const res = { ...p.resources };
       (Object.keys(taken) as ResourceType[]).forEach((r) => { res[r] += taken[r]!; });
-      return { ...p, resources: res };
+      return { ...p, resources: res, raids: p.raids + 1 };
     }
     return p;
   });

@@ -80,7 +80,7 @@ export interface Player {
   color: string;                 // 表示色
   resources: Resources;          // 手札
   vassals: VassalId[];           // 登用済みの家臣（常時公開）
-  playedWarlords: number;        // プレイ済み武将枚数（最大兵力用）
+  raids: number;                 // 略奪成功回数（戦功用）
   piecesLeft: { road: number; fort: number; castle: number };
 }
 
@@ -116,7 +116,6 @@ export interface GameState {
   currentPlayer: PlayerId;
   vassalDeck: VassalId[];          // 家臣山札（登用する順）
   dice: [number, number] | null;  // 直近の出目
-  largestArmyHolder: PlayerId | null;
   pendingTrade: PendingTrade | null;
   discardQueue: PlayerId[];       // 7のとき破棄が必要な人の待ち行列
   // 初期配置の進行管理

@@ -17,7 +17,7 @@ function makePlayer(id: number, overrides: Partial<Player> = {}): Player {
     color: '#000',
     resources: emptyResources(),
     vassals: [],
-    playedWarlords: 0,
+    raids: 0,
     piecesLeft: { road: 15, fort: 5, castle: 4 },
     ...overrides,
   };
