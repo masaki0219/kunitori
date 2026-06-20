@@ -1,4 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -22,6 +23,13 @@ export default function App() {
     g.ErrorUtils?.setGlobalHandler?.((error: any, isFatal?: boolean) => {
       console.error('[GLOBAL JS ERROR]', isFatal, error?.message, error?.stack);
       prev?.(error, isFatal);
+    });
+  }, []);
+
+  // 画面を横向きに固定（修正指示書 §2 Step3）
+  useEffect(() => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {
+      // ロック失敗は致命的でないため握りつぶす（Web等では no-op）
     });
   }, []);
 
