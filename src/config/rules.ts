@@ -17,7 +17,7 @@ export const PRESTIGE = { fort: 1, castle: 2, network: 2, warMerit: 2 } as const
 export const NETWORK_MIN = 3;
 export const RAID_MIN = 3;
 export const HAND_LIMIT_FOR_DISCARD = 8; // これ以上で7のとき破棄
-export const BANK_TRADE_RATE = 4;        // 4:1
+export const BANK_TRADE_RATE = 3;        // 楽市：3:1
 
 // 数字チップ（18枚）
 export const NUMBER_TOKENS = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
@@ -36,9 +36,8 @@ export const PLAYER_COLORS = ['#C2541A', '#1F3A7A', '#5C8A3A', '#6B3FA0'];
 
 export const AI_TRADE_LOOP_LIMIT = 4;
 
-// 港のレート
-export const PORT_RATES = { specific: 2, generic: 3 } as const;
+// 湊のレート
+export const PORT_RATES = { specific: 2 } as const;
 
-// 港の構成：各資源の 2:1 を1つずつ（5個）＋ 汎用 3:1 を4個 = 合計9
+// 湊の構成：各資源の 2:1 を1つずつ（合計5）
 export const SPECIFIC_PORT_RESOURCES: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
-export const GENERIC_PORT_COUNT = 4;

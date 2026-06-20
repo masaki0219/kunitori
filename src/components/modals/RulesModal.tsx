@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Overlay from './Overlay';
 import { VASSAL_DESCRIPTIONS, VASSAL_LABELS, formatCost, RESOURCE_LABELS, TERRAIN_LABELS } from '../../config/labels';
-import { BANK_TRADE_RATE, COSTS, GENERIC_PORT_COUNT, HAND_LIMIT_FOR_DISCARD, RAID_MIN, NETWORK_MIN, PIECE_LIMITS, PORT_RATES, PRESTIGE, SPECIFIC_PORT_RESOURCES, WIN_PRESTIGE } from '../../config/rules';
+import { BANK_TRADE_RATE, COSTS, HAND_LIMIT_FOR_DISCARD, RAID_MIN, NETWORK_MIN, PIECE_LIMITS, PORT_RATES, PRESTIGE, WIN_PRESTIGE } from '../../config/rules';
 import { VassalId } from '../../game/types';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
@@ -49,9 +49,8 @@ export default function RulesModal({ onClose }: Props) {
             </Section>
 
             <Section title="交易">
-              <Line>銀行交易: 同じ資源{BANK_TRADE_RATE}個 → 好きな資源1個</Line>
-              <Line>港: 海岸に砦/城を置くとレートが優遇される（{PORT_RATES.specific}:1の資源指定港{SPECIFIC_PORT_RESOURCES.length}個・{PORT_RATES.generic}:1の汎用港{GENERIC_PORT_COUNT}個）</Line>
-              <Line>港を持たない資源は{BANK_TRADE_RATE}:1のまま</Line>
+              <Line>楽市：同じ資源{BANK_TRADE_RATE}つ→好きな資源1つ</Line>
+              <Line>湊：海岸に拠点を置くとその資源が{PORT_RATES.specific}つで交換可</Line>
               <Line>他プレイヤーとの交易も提案できる</Line>
             </Section>
 

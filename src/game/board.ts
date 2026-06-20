@@ -1,4 +1,4 @@
-import { GENERIC_PORT_COUNT, NUMBER_TOKENS, PORT_RATES, SPECIFIC_PORT_RESOURCES, TERRAIN_COUNTS } from '../config/rules';
+import { NUMBER_TOKENS, PORT_RATES, SPECIFIC_PORT_RESOURCES, TERRAIN_COUNTS } from '../config/rules';
 import { shuffle } from '../utils/random';
 import {
   AxialCoord,
@@ -169,7 +169,7 @@ export function assignPorts(geo: BoardGeometry): BoardGeometry {
     return { eid, angle: Math.atan2(my - cy, mx - cx) };
   }).sort((a, b) => a.angle - b.angle);
 
-  const total = SPECIFIC_PORT_RESOURCES.length + GENERIC_PORT_COUNT; // 9
+  const total = SPECIFIC_PORT_RESOURCES.length; // 5（湊：資源指定のみ）
   // 等間隔に間引いて total 個選ぶ（隣接回避のため step は2以上を目安に）
   const step = Math.max(2, Math.floor(withAngle.length / total));
   const chosen: number[] = [];
@@ -177,12 +177,10 @@ export function assignPorts(geo: BoardGeometry): BoardGeometry {
     chosen.push(withAngle[i].eid);
   }
 
-  // レート/資源の割り当て（資源2:1 → 汎用3:1）
+  // レート/資源の割り当て（湊：資源指定の2:1のみ）
   const specs = shuffle([...SPECIFIC_PORT_RESOURCES]);
-  const slots: { rate: number; resource: ResourceType | null }[] = [
-    ...specs.map((r) => ({ rate: PORT_RATES.specific as number, resource: r })),
-    ...Array.from({ length: GENERIC_PORT_COUNT }, () => ({ rate: PORT_RATES.generic as number, resource: null })),
-  ];
+  const slots: { rate: number; resource: ResourceType | null }[] =
+    specs.map((r) => ({ rate: PORT_RATES.specific as number, resource: r }));
 
   const ports: Port[] = chosen.map((eid, i) => {
     const e = geo.edges[eid];

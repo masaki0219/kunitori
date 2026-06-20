@@ -147,9 +147,9 @@ describe('stronghold network', () => {
 });
 
 describe('bank trade', () => {
-  it('exchanges 4 of a resource for 1 of another', () => {
+  it('exchanges 3 (rakuichi rate) of a resource for 1 of another', () => {
     let state = makeState();
-    state.players[0].resources = { timber: 4, stone: 0, rice: 0, horse: 0, iron: 0 };
+    state.players[0].resources = { timber: 3, stone: 0, rice: 0, horse: 0, iron: 0 };
     const next = bankTrade(state, 'timber', 'stone');
     expect(next.players[0].resources.timber).toBe(0);
     expect(next.players[0].resources.stone).toBe(1);

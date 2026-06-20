@@ -6,15 +6,14 @@ import { GameState, PlayerId, ResourceType } from './types';
 // プレイヤーが建物を置いている港を考慮した、give 資源の最良（最小）レート
 export function effectiveTradeRate(state: GameState, playerId: PlayerId, give: ResourceType): number {
   const player = state.players.find((p) => p.id === playerId)!;
-  let rate = BANK_TRADE_RATE; // 4
+  let rate = BANK_TRADE_RATE; // 楽市3
   const myVertexIds = new Set(
     state.buildings.filter((b) => b.owner === playerId).map((b) => b.vertexId)
   );
   for (const port of state.board.ports) {
     const owned = port.vertexIds.some((vid) => myVertexIds.has(vid));
     if (!owned) continue;
-    if (port.resource === give) rate = Math.min(rate, port.rate);        // 2:1
-    else if (port.resource === null) rate = Math.min(rate, port.rate);   // 3:1
+    if (port.resource === give) rate = Math.min(rate, port.rate);        // 湊2:1
   }
   return Math.max(2, rate + tradeRateDelta(player));
 }
