@@ -3,9 +3,11 @@ import { playersAdjacentToHex } from '../game/board';
 import { getBuildableEdges, getBuildableVertices, getUpgradableForts } from '../game/build';
 import { canAfford } from '../game/resources';
 import { computePrestige } from '../game/scoring';
+import { isValidSetupFort } from '../game/setup';
 import { effectiveTradeRate } from '../game/trade';
 import { GameState, Player, PlayerId, ResourceType ,Resources} from '../game/types';
 import { useGameStore } from '../store/gameStore';
+import { chooseRoadTarget, evalTargetVertex, scoreVertex } from './aiStrategy';
 
 const ALL_RESOURCES: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
 
@@ -19,25 +21,6 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms * aiStepDelayScale));
 }
 
-function tokenWeight(token: number | null): number {
-  if (token === null) return 0;
-  return 6 - Math.abs(7 - token);
-}
-
-function scoreVertex(state: GameState, vertexId: number): number {
-  const vertex = state.board.vertices[vertexId];
-  let score = 0;
-  const terrains = new Set<string>();
-  for (const hexId of vertex.hexIds) {
-    const hex = state.board.hexes.find((h) => h.id === hexId)!;
-    if (hex.id === state.banditHexId) continue;
-    score += tokenWeight(hex.token);
-    if (hex.token !== null) terrains.add(hex.terrain);
-  }
-  if (terrains.size === 3) score += 2;
-  else if (terrains.size === 2) score += 1;
-  return score;
-}
 
 export function chooseSetupFort(state: GameState): number {
   const candidates = state.board.vertices.filter((v) => {
@@ -56,8 +39,24 @@ export function chooseSetupFort(state: GameState): number {
 
 export function chooseSetupRoad(state: GameState, fromVertex: number): number {
   const vertex = state.board.vertices[fromVertex];
-  const validEdge = vertex.edgeIds.find((eid) => !state.roads.some((r) => r.edgeId === eid));
-  return validEdge ?? vertex.edgeIds[0];
+  const candidates = vertex.edgeIds.filter((eid) => !state.roads.some((r) => r.edgeId === eid));
+  if (candidates.length === 0) return vertex.edgeIds[0];
+
+  let bestEdge = candidates[0];
+  let bestVal = -Infinity;
+  for (const eid of candidates) {
+    const e = state.board.edges[eid];
+    const far = e.vertexIds[0] === fromVertex ? e.vertexIds[1] : e.vertexIds[0];
+    let val = isValidSetupFort(state, far) ? evalTargetVertex(state, state.currentPlayer, far) : 0;
+    const farV = state.board.vertices[far];
+    for (const nv of farV.neighborVertexIds) {
+      if (isValidSetupFort(state, nv)) {
+        val = Math.max(val, evalTargetVertex(state, state.currentPlayer, nv));
+      }
+    }
+    if (val > bestVal) { bestVal = val; bestEdge = eid; }
+  }
+  return bestEdge;
 }
 
 function mostHeldResource(resources: Resources): ResourceType {
@@ -148,6 +147,11 @@ async function tryBuild(state: GameState): Promise<boolean> {
 
   const buildableEdges = getBuildableEdges(state, playerId);
   if (buildableEdges.length > 0 && canAfford(player.resources, COSTS.road)) {
+    const target = chooseRoadTarget(state, playerId);
+    if (target && buildableEdges.includes(target.firstEdge)) {
+      store.buildRoad(target.firstEdge);
+      return true;
+    }
     store.buildRoad(buildableEdges[0]);
     return true;
   }
@@ -183,7 +187,14 @@ async function runMainPhase(): Promise<void> {
     }
 
     if (tradeCount < AI_TRADE_LOOP_LIMIT) {
-      const traded = tryBankTradeTowardCost(state, COSTS.fort) || tryBankTradeTowardCost(state, COSTS.castle);
+      const upgradable = getUpgradableForts(state, state.currentPlayer);
+      const connectedFort = getBuildableVertices(state, state.currentPlayer).length > 0;
+
+      let goalCost = COSTS.road;
+      if (upgradable.length > 0) goalCost = COSTS.castle;
+      else if (connectedFort) goalCost = COSTS.fort;
+
+      const traded = tryBankTradeTowardCost(state, goalCost);
       if (traded) {
         tradeCount++;
         await delay(400);
@@ -216,19 +227,21 @@ export async function resolveAIDiscards(): Promise<void> {
 }
 
 export async function runAISetupTurn(): Promise<void> {
-  const state = useGameStore.getState();
-  const player = state.players.find((p) => p.id === state.currentPlayer)!;
-  if (!player.isAI) return;
-  if (state.phase !== 'setupPlacement') return;
-  if (state.setup.pendingRoadFromVertex !== null) return; // road placement only follows immediately after fort below
+  while (true) {
+    const state = useGameStore.getState();
+    const player = state.players.find((p) => p.id === state.currentPlayer)!;
+    if (!player.isAI) return;
+    if (state.phase !== 'setupPlacement') return;
+    if (state.setup.pendingRoadFromVertex !== null) return;
 
-  const vertexId = chooseSetupFort(state);
-  useGameStore.getState().placeSetupFort(vertexId);
-  await delay(350);
+    const vertexId = chooseSetupFort(state);
+    useGameStore.getState().placeSetupFort(vertexId);
+    await delay(350);
 
-  const edgeId = chooseSetupRoad(useGameStore.getState(), vertexId);
-  useGameStore.getState().placeSetupRoad(edgeId);
-  await delay(350);
+    const edgeId = chooseSetupRoad(useGameStore.getState(), vertexId);
+    useGameStore.getState().placeSetupRoad(edgeId);
+    await delay(350);
+  }
 }
 
 export async function runAITurn(): Promise<void> {

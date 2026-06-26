@@ -47,6 +47,7 @@ export default function GameScreen() {
   const [showCards, setShowCards] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const aiRunning = useRef(false);
+  const [aiTick, setAiTick] = useState(0);
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const compact = height < 600;
@@ -71,8 +72,17 @@ export default function GameScreen() {
     if (state.phase === 'gameOver') return;
     aiRunning.current = true;
     const task = state.phase === 'setupPlacement' ? runAISetupTurn() : runAITurn();
-    task.finally(() => { aiRunning.current = false; });
-  }, [state.currentPlayer, state.phase, state.setup.index, currentPlayer?.isAI]);
+    task.finally(() => {
+      aiRunning.current = false;
+      // ガード解除は再レンダリングを伴わないため、AI→AI の連続手番が取りこぼされる。
+      // 次がAIの「自律開始局面」のときだけ再評価を強制する（discardは人間待ちのため除外＝無限ループ防止）。
+      const s = useGameStore.getState();
+      const cur = s.players.find((p) => p.id === s.currentPlayer);
+      if (cur?.isAI && (s.phase === 'roll' || s.phase === 'setupPlacement')) {
+        setAiTick((t) => t + 1);
+      }
+    });
+  }, [state.currentPlayer, state.phase, state.setup.index, currentPlayer?.isAI, aiTick]);
 
   useEffect(() => {
     const net = useNetStore.getState();
