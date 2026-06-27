@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../config/labels';
 import { useGameStore } from '../store/gameStore';
 import { useNetStore } from '../net/netStore';
@@ -10,6 +11,7 @@ export default function JoinRoomScreen() {
   const [code, setCode] = useState('');
   const [name, setName] = useState('大名');
   const [busy, setBusy] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const onJoin = async () => {
     if (code.trim().length < 4) return;
@@ -19,7 +21,12 @@ export default function JoinRoomScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {
+      paddingLeft: insets.left + 24,
+      paddingRight: insets.right + 24,
+      paddingTop: insets.top + 24,
+      paddingBottom: insets.bottom + 24,
+    }]}>
       <Text style={styles.heading}>部屋に参加</Text>
       <Text style={styles.label}>部屋コード</Text>
       <TextInput style={[styles.input, styles.code]} autoCapitalize="characters"
@@ -35,7 +42,7 @@ export default function JoinRoomScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream, padding: 24, gap: 14, justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: COLORS.cream, gap: 14, justifyContent: 'center' },
   heading: { fontSize: 24, fontWeight: 'bold', color: COLORS.brandGreen },
   label: { fontSize: 13, color: '#555' },
   input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 10, backgroundColor: '#fff' },

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../config/theme';
 import { useGameStore } from '../store/gameStore';
 import { useNetStore } from '../net/netStore';
@@ -19,8 +20,10 @@ function defaultPlayers(count: number): PlayerConfig[] {
 
 export default function SetupScreen() {
   const startGame = useGameStore((s) => s.startGame);
+  const goToScreen = useGameStore((s) => s.goToScreen);
   const [count, setCount] = useState(3);
   const [players, setPlayers] = useState<PlayerConfig[]>(defaultPlayers(3));
+  const insets = useSafeAreaInsets();
 
   const setCountAndResize = (n: number) => {
     setCount(n);
@@ -40,7 +43,12 @@ export default function SetupScreen() {
   return (
     <View style={styles.root}>
       <LinearGradient colors={[PALETTE.wood500, PALETTE.wood900]} style={StyleSheet.absoluteFill} />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {
+        paddingLeft: insets.left + SPACING.xl,
+        paddingRight: insets.right + SPACING.xl,
+        paddingTop: insets.top + SPACING.xl,
+        paddingBottom: insets.bottom + SPACING.xl,
+      }]}>
         <Text style={styles.heading}>プレイヤー設定</Text>
 
         <View style={styles.countRow}>
@@ -77,6 +85,10 @@ export default function SetupScreen() {
         >
           <Text style={styles.startButtonText}>開始</Text>
         </Pressable>
+
+        <Pressable onPress={() => goToScreen('home')}>
+          <Text style={styles.back}>← もどる</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
@@ -84,7 +96,7 @@ export default function SetupScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  container: { flexGrow: 1, padding: SPACING.xl, gap: SPACING.md },
+  container: { flexGrow: 1, gap: SPACING.md },
   heading: { ...TYPE.h1, color: PALETTE.gold, marginBottom: SPACING.sm },
   countRow: { flexDirection: 'row', gap: SPACING.sm },
   countButton: { paddingVertical: SPACING.sm, paddingHorizontal: SPACING.lg, borderRadius: RADIUS.md, borderWidth: 1, borderColor: PALETTE.gold },
@@ -99,4 +111,5 @@ const styles = StyleSheet.create({
   startButton: { backgroundColor: PALETTE.goldLight, borderColor: PALETTE.goldDark, borderWidth: 1, paddingVertical: SPACING.md, borderRadius: RADIUS.md, alignItems: 'center', marginTop: SPACING.lg, ...ELEVATION.floating },
   startButtonDisabled: { backgroundColor: PALETTE.washiDark, borderColor: PALETTE.washiDark, opacity: 0.6 },
   startButtonText: { ...TYPE.h2, color: PALETTE.wood900 },
+  back: { color: '#888', marginTop: 8 },
 });

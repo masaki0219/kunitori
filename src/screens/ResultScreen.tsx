@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER } from '../config/theme';
 import { PRESTIGE, RAID_MIN } from '../config/rules';
 import { computePrestige, hasStrongholdNetwork } from '../game/scoring';
@@ -11,6 +12,7 @@ export default function ResultScreen() {
   const winner = useGameStore((s) => s.winner);
   const state = useGameStore((s) => s);
   const resetGame = useGameStore((s) => s.resetGame);
+  const insets = useSafeAreaInsets();
 
   const ranking = [...players]
     .map((p) => ({
@@ -27,7 +29,12 @@ export default function ResultScreen() {
   return (
     <View style={styles.root}>
       <LinearGradient colors={[PALETTE.wood500, PALETTE.wood900]} style={StyleSheet.absoluteFill} />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {
+        paddingLeft: insets.left + SPACING.xl,
+        paddingRight: insets.right + SPACING.xl,
+        paddingTop: insets.top + SPACING.xl,
+        paddingBottom: insets.bottom + SPACING.xl,
+      }]}>
         <Text style={styles.heading}>
           {winner !== null ? `${players.find((p) => p.id === winner)?.name} の勝利！` : '結果'}
         </Text>
@@ -51,7 +58,7 @@ export default function ResultScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  container: { flexGrow: 1, padding: SPACING.xl, gap: SPACING.sm },
+  container: { flexGrow: 1, gap: SPACING.sm },
   heading: { ...TYPE.h1, color: PALETTE.gold, marginBottom: SPACING.md, textAlign: 'center' },
   card: { borderWidth: BORDER.thick, borderRadius: RADIUS.md, padding: SPACING.md, backgroundColor: PALETTE.washi, gap: 4, ...ELEVATION.card },
   cardWinner: { borderColor: PALETTE.gold },

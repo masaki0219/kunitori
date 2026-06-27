@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../config/labels';
 import { useGameStore } from '../store/gameStore';
 import { useNetStore } from '../net/netStore';
@@ -8,9 +9,15 @@ export default function LobbyScreen() {
   const goToScreen = useGameStore((s) => s.goToScreen);
   const { role, roomCode, status, members, mySeat, addAISeat, startOnlineGame, leaveRoom } = useNetStore();
   const isHost = role === 'host';
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, {
+      paddingLeft: insets.left + 24,
+      paddingRight: insets.right + 24,
+      paddingTop: insets.top + 24,
+      paddingBottom: insets.bottom + 24,
+    }]}>
       <Text style={styles.heading}>ロビー</Text>
 
       <View style={styles.codeBox}>
@@ -60,7 +67,7 @@ function statusLabel(s: string) {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, backgroundColor: COLORS.cream, padding: 24, gap: 12 },
+  container: { flexGrow: 1, backgroundColor: COLORS.cream, gap: 12 },
   heading: { fontSize: 24, fontWeight: 'bold', color: COLORS.brandGreen },
   codeBox: { backgroundColor: '#fff', borderRadius: 12, padding: 16, alignItems: 'center', gap: 4 },
   codeLabel: { fontSize: 12, color: '#888' },
