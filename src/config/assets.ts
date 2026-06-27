@@ -22,4 +22,4 @@ export const TABLE_IMAGE: ImageSourcePropType = require('../../assets/table/tabl
 export const SEA_IMAGE: ImageSourcePropType = require('../../assets/board/sea.png');
 
 // タイトル画面の背景イラスト
-export const TITLE_BG_IMAGE: ImageSourcePropType = require('../../assets/title/title-bg.png');
+export const TITLE_BG_IMAGE: ImageSourcePropType = require('../../assets/title/title-bg.jpg');
