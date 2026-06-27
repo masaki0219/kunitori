@@ -54,6 +54,7 @@ interface GameStore extends GameState {
 
   endTurn: () => void;
   resetGame: () => void;
+  quitToHome: () => void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -87,4 +88,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }),
 
   resetGame: () => set({ ...placeholderState(), screen: 'setup' }),
+
+  quitToHome: () => set({ ...placeholderState(), screen: 'home' }),
 }));

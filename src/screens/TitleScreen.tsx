@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BRANDING } from '../config/branding';
@@ -10,6 +10,7 @@ import { useGameStore } from '../store/gameStore';
 export default function TitleScreen() {
   const goToScreen = useGameStore((s) => s.goToScreen);
   const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
 
   return (
     <View style={[styles.container, {
@@ -18,7 +19,7 @@ export default function TitleScreen() {
       paddingTop: insets.top,
       paddingBottom: insets.bottom,
     }]}>
-      <Image source={TITLE_BG_IMAGE} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      <Image source={TITLE_BG_IMAGE} style={{ position: 'absolute', width, height }} resizeMode="cover" />
 
       <LinearGradient
         colors={['rgba(36,23,16,0.10)', 'rgba(36,23,16,0.55)', 'rgba(36,23,16,0.30)']}

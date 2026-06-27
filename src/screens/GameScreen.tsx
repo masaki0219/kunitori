@@ -12,6 +12,8 @@ import TopBar from '../components/Hud/TopBar';
 import VassalModal from '../components/modals/VassalModal';
 import DiscardModal from '../components/modals/DiscardModal';
 import RulesModal from '../components/modals/RulesModal';
+import SettingsModal from '../components/modals/SettingsModal';
+import ConfirmDialog from '../components/modals/ConfirmDialog';
 import StealTargetModal from '../components/modals/StealTargetModal';
 import TradeModal from '../components/modals/TradeModal';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../config/theme';
@@ -46,6 +48,8 @@ export default function GameScreen() {
   const [showTrade, setShowTrade] = useState(false);
   const [showCards, setShowCards] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showConfirmHome, setShowConfirmHome] = useState(false);
   const aiRunning = useRef(false);
   const [aiTick, setAiTick] = useState(0);
   const { width, height } = useWindowDimensions();
@@ -180,6 +184,11 @@ export default function GameScreen() {
     iron: effectiveTradeRate(state, currentPlayer.id, 'iron'),
   };
 
+  const quitToHome = () => {
+    useNetStore.getState().leaveRoom();
+    useGameStore.getState().quitToHome();
+  };
+
   return (
     <View style={styles.root}>
       <Image
@@ -213,7 +222,7 @@ export default function GameScreen() {
 
       <TopBar
         style={[styles.topBar, { top: insets.top + SPACING.sm, left: insets.left + SPACING.md, right: insets.right + SPACING.md }]}
-        onMenu={() => useGameStore.getState().goToScreen('title')}
+        onSettings={() => setShowSettings(true)}
         onRules={() => setShowRules(true)}
       />
 
@@ -272,6 +281,25 @@ export default function GameScreen() {
       </View>
 
       {showRules ? <RulesModal onClose={() => setShowRules(false)} /> : null}
+
+      {showSettings ? (
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
+          onQuitToHome={() => { setShowSettings(false); setShowConfirmHome(true); }}
+        />
+      ) : null}
+
+      {showConfirmHome ? (
+        <ConfirmDialog
+          title="ホームに戻りますか？"
+          message="現在の対局は破棄されます。よろしいですか？"
+          confirmLabel="ホームに戻る"
+          cancelLabel="続ける"
+          destructive
+          onConfirm={() => { setShowConfirmHome(false); quitToHome(); }}
+          onCancel={() => setShowConfirmHome(false)}
+        />
+      ) : null}
 
       {discardTarget ? (
         <DiscardModal player={discardTarget} onConfirm={(give) => dispatch({ t: 'discardCards', playerId: discardTarget.id, give })} />

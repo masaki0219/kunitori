@@ -5,27 +5,21 @@ import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 
 interface Props {
   style?: StyleProp<ViewStyle>;
-  onMenu?: () => void;
   onSettings?: () => void;
   onRules?: () => void;
-  onStats?: () => void;
   onChat?: () => void;
 }
 
-export default function TopBar({ style, onMenu, onSettings, onRules, onStats, onChat }: Props) {
+export default function TopBar({ style, onSettings, onRules, onChat }: Props) {
   return (
     <View style={[styles.bar, style]}>
       <View style={styles.group}>
-        <Pressable style={styles.iconBtn} onPress={onMenu}>
-          <Ionicons name="menu" size={22} color={PALETTE.washi} />
-        </Pressable>
         <Pressable style={styles.iconBtn} onPress={onSettings}>
           <Ionicons name="settings-sharp" size={20} color={PALETTE.washi} />
         </Pressable>
       </View>
       <View style={styles.group}>
         <LabeledButton icon="book" label="ルール" onPress={onRules} />
-        <LabeledButton icon="stats-chart" label="統計" onPress={onStats} />
         <LabeledButton icon="chatbubble-ellipses" label="チャット" onPress={onChat} disabled={!onChat} />
       </View>
     </View>
