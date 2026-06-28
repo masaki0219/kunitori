@@ -1,5 +1,6 @@
 import { NETWORK_MIN, PRESTIGE, RAID_MIN, WIN_PRESTIGE } from '../config/rules';
 import { prestigeFromVassals } from './vassals';
+import { appendLog } from './log';
 import { GameState, PlayerId } from './types';
 
 export function computePrestige(state: GameState, playerId: PlayerId): number {
@@ -55,7 +56,8 @@ export function hasStrongholdNetwork(state: GameState, playerId: PlayerId): bool
 export function checkWin(state: GameState): GameState {
   const points = computePrestige(state, state.currentPlayer);
   if (points >= WIN_PRESTIGE) {
-    return { ...state, winner: state.currentPlayer, phase: 'gameOver', screen: 'result' };
+    const name = state.players.find((p) => p.id === state.currentPlayer)?.name ?? '';
+    return appendLog({ ...state, winner: state.currentPlayer, phase: 'gameOver', screen: 'result' }, `${name}が勝利しました`);
   }
   return state;
 }

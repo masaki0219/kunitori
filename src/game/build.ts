@@ -4,6 +4,8 @@ import { canAfford, payCost } from './resources';
 import { recomputeAfterBuild } from './scoring';
 import { isValidSetupFort } from './setup';
 import { roadCostFor } from './vassals';
+import { appendLog } from './log';
+import { VASSAL_LABELS } from '../config/labels';
 import { GameState, PlayerId } from './types';
 
 function getPlayer(state: GameState, playerId: PlayerId) {
@@ -66,7 +68,7 @@ export function buildRoad(state: GameState, edgeId: number): GameState {
     }
   );
   const next: GameState = { ...state, players, roads: [...state.roads, { edgeId, owner: playerId }] };
-  return recomputeAfterBuild(next);
+  return recomputeAfterBuild(appendLog(next, `${player.name}が街道を建設しました`));
 }
 
 export function buildFort(state: GameState, vertexId: number): GameState {
@@ -94,7 +96,7 @@ export function buildFort(state: GameState, vertexId: number): GameState {
     buildings: [...state.buildings, { vertexId, owner: playerId, type: 'fort' }],
   };
 
-  return recomputeAfterBuild(next);
+  return recomputeAfterBuild(appendLog(next, `${player.name}が砦を築きました`));
 }
 
 export function buildCastle(state: GameState, vertexId: number): GameState {
@@ -126,7 +128,7 @@ export function buildCastle(state: GameState, vertexId: number): GameState {
   );
 
   const next: GameState = { ...state, players, buildings };
-  return recomputeAfterBuild(next);
+  return recomputeAfterBuild(appendLog(next, `${player.name}が城を築きました`));
 }
 
 export function recruitVassal(state: GameState): GameState {
@@ -141,5 +143,5 @@ export function recruitVassal(state: GameState): GameState {
       ? { ...p, resources: payCost(p.resources, COSTS.card), vassals: [...p.vassals, drawn] }
       : p
   );
-  return recomputeAfterBuild({ ...state, players, vassalDeck: rest });
+  return recomputeAfterBuild(appendLog({ ...state, players, vassalDeck: rest }, `${player.name}が${VASSAL_LABELS[drawn]}を登用しました`));
 }

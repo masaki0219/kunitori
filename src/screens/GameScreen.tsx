@@ -29,7 +29,7 @@ import { useGameStore } from '../store/gameStore';
 import { aiEvaluateTrade } from '../ai/aiPlayer';
 import { useNetStore } from '../net/netStore';
 
-const TOP_RESERVE = 4;
+const TOP_RESERVE = 56; // 港ラベルが画面上端で切れないよう盤面を下げる。帯中心=(topReserve+(height-bottomReserve))/2 のため +2 で約1px下がる。
 const BOTTOM_RESERVE = 72;
 
 function setupBuildableEdges(state: ReturnType<typeof useGameStore.getState>): number[] {

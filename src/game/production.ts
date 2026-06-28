@@ -3,6 +3,7 @@ import { needsDiscard } from './bandit';
 import { addResources } from './resources';
 import { terrainResource } from './setup';
 import { turnIncome } from './vassals';
+import { appendLog } from './log';
 import { GameState, PlayerId, ResourceType } from './types';
 
 export function produceResources(state: GameState, sum: number): GameState {
@@ -37,17 +38,21 @@ export function produceResources(state: GameState, sum: number): GameState {
 export function rollAndProduce(state: GameState): GameState {
   const dice = rollTwoDice();
   const sum = dice[0] + dice[1];
+  const roller = state.players[state.currentPlayer]?.name ?? '';
 
   if (sum === 7) {
     const discardQueue = needsDiscard(state);
-    return {
-      ...state,
-      dice,
-      discardQueue,
-      phase: discardQueue.length > 0 ? 'discard' : 'moveBandit',
-    };
+    return appendLog(
+      {
+        ...state,
+        dice,
+        discardQueue,
+        phase: discardQueue.length > 0 ? 'discard' : 'moveBandit',
+      },
+      `${roller}が7を出しました（一揆）`
+    );
   }
 
   const produced = produceResources(state, sum);
-  return { ...produced, dice, phase: 'main' };
+  return appendLog({ ...produced, dice, phase: 'main' }, `${roller}が${sum}を出しました`);
 }

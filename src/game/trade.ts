@@ -1,6 +1,8 @@
 import { BANK_TRADE_RATE } from '../config/rules';
 import { canAfford, payCost, addResources } from './resources';
 import { tradeRateDelta } from './vassals';
+import { appendLog } from './log';
+import { RESOURCE_SHORT_LABELS } from '../config/labels';
 import { GameState, PlayerId, ResourceType } from './types';
 
 // プレイヤーが建物を置いている港を考慮した、give 資源の最良（最小）レート
@@ -32,7 +34,7 @@ export function bankTrade(state: GameState, give: ResourceType, take: ResourceTy
     return { ...p, resources };
   });
 
-  return { ...state, players };
+  return appendLog({ ...state, players }, `${player.name}が${RESOURCE_SHORT_LABELS[give]}を${RESOURCE_SHORT_LABELS[take]}に交換しました`);
 }
 
 export function proposeTrade(
@@ -73,5 +75,7 @@ export function respondTrade(state: GameState, accept: boolean): GameState {
     return p;
   });
 
-  return { ...state, players, pendingTrade: null };
+  const fromName = state.players.find((p) => p.id === trade.from)?.name ?? '';
+  const toName = state.players.find((p) => p.id === trade.to)?.name ?? '';
+  return appendLog({ ...state, players, pendingTrade: null }, `${fromName}が${toName}と取引しました`);
 }

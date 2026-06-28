@@ -2,6 +2,7 @@ import { HAND_LIMIT_FOR_DISCARD } from '../config/rules';
 import { playersAdjacentToHex } from './board';
 import { countResources } from './resources';
 import { isDiscardExempt, stealCount } from './vassals';
+import { appendLog } from './log';
 import { GameState, PlayerId, ResourceType } from './types';
 
 export function needsDiscard(state: GameState): PlayerId[] {
@@ -33,7 +34,7 @@ export function discardCards(
   const discardQueue = state.discardQueue.filter((id) => id !== playerId);
   const phase = discardQueue.length > 0 ? 'discard' : 'moveBandit';
 
-  return { ...state, players, discardQueue, phase };
+  return appendLog({ ...state, players, discardQueue, phase }, `${player.name}が年貢を供出しました`);
 }
 
 export function moveBandit(state: GameState, hexId: number): GameState {
@@ -81,5 +82,5 @@ export function stealFrom(state: GameState, targetId: PlayerId): GameState {
     }
     return p;
   });
-  return { ...state, players, phase: 'main' };
+  return appendLog({ ...state, players, phase: 'main' }, `${me.name}が${target.name}から略奪しました`);
 }

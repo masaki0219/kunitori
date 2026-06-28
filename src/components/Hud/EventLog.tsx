@@ -17,7 +17,7 @@ interface Props {
 export default function EventLog({ style, log, guideText, isMyTurn, turnName, compact, players }: Props) {
   const colorOf = (line: string) =>
     players?.find((p) => line.startsWith(p.name))?.color ?? PALETTE.washiDark;
-  const lines = (log ?? []).slice(-4);
+  const lines = (log ?? []).slice(compact ? -2 : -4);
 
   return (
     <View style={[styles.wrap, style]}>
@@ -31,21 +31,19 @@ export default function EventLog({ style, log, guideText, isMyTurn, turnName, co
         <Text style={styles.statusSub} numberOfLines={2}>{guideText}</Text>
       </View>
 
-      {!compact ? (
-        <View style={styles.logCard}>
-          <Text style={styles.title}>ゲームログ</Text>
-          {lines.length > 0 ? (
-            lines.map((line, i) => (
-              <Text key={i} style={[styles.line, { color: colorOf(line) }]} numberOfLines={1}>{line}</Text>
-            ))
-          ) : (
-            <Text style={styles.linePlaceholder}>（まだありません）</Text>
-          )}
-          {(log ?? []).length > 4 ? (
-            <Ionicons name="chevron-down" size={14} color={PALETTE.washiDark} style={styles.chevron} />
-          ) : null}
-        </View>
-      ) : null}
+      <View style={[styles.logCard, compact && styles.logCardCompact]}>
+        {!compact ? <Text style={styles.title}>ゲームログ</Text> : null}
+        {lines.length > 0 ? (
+          lines.map((line, i) => (
+            <Text key={i} style={[styles.line, { color: colorOf(line) }]} numberOfLines={1}>{line}</Text>
+          ))
+        ) : (
+          <Text style={styles.linePlaceholder}>（まだありません）</Text>
+        )}
+        {(log ?? []).length > (compact ? 2 : 4) ? (
+          <Ionicons name="chevron-down" size={14} color={PALETTE.washiDark} style={styles.chevron} />
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -70,6 +68,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     ...ELEVATION.card,
   },
+  logCardCompact: { padding: SPACING.xs },
   title: { color: PALETTE.gold, ...TYPE.label },
   line: { color: PALETTE.washiDark, ...TYPE.caption, marginTop: 2 },
   linePlaceholder: { color: PALETTE.washiDark, ...TYPE.caption, marginTop: 2, opacity: 0.6 },
