@@ -5,7 +5,7 @@ import type { NetTransport } from './transport';
 import { applyIntentOnHost, validateIntent } from './intent';
 import { toSnapshotState } from './snapshot';
 import {
-  EV, IntentMessageSchema, SnapshotMessageSchema, LobbyMessageSchema,
+  EV, IntentMessageSchema, SnapshotMessageSchema, LobbyMessageSchema, StampMessageSchema,
   type Intent, type Member, type Role, type Seat, type NetStatus,
 } from './messages';
 import { newId } from './ids';
@@ -19,6 +19,7 @@ interface NetState {
   roomCode: string | null;
   status: NetStatus;
   members: Member[];
+  lastStamp: { seat: Seat; stampId: string; msgId: string } | null;
 
   // 内部用
   _transport: NetTransport | null;
@@ -33,6 +34,7 @@ interface NetState {
   addAISeat: (name: string) => void;          // ホストがロビーでAI席を足す
   startOnlineGame: () => void;                 // ホストが対局開始
   dispatch: (intent: Intent) => void;          // UIからの操作はすべてこれを通す
+  sendStamp: (stampId: string) => void;        // 揮発的スタンプを全員へ送る
   leaveRoom: () => void;
 
   // 内部ヘルパー（ホスト用）
@@ -43,6 +45,7 @@ interface NetState {
 export const useNetStore = create<NetState>((set, get) => ({
   mode: 'local',
   role: null, mySeat: null, roomCode: null, status: 'idle', members: [],
+  lastStamp: null,
   _transport: null, _rev: 0, _seenMsgIds: new Set(), _unsubscribeStore: null,
 
   // --- ローカル1台対戦（従来動作） ---
@@ -96,6 +99,11 @@ export const useNetStore = create<NetState>((set, get) => ({
         get()._hostRebroadcastSnapshot();
       },
       onMessage: (event, payload) => {
+        if (event === EV.stamp) {                     // スタンプは host/guest 共通で受ける
+          const p = StampMessageSchema.safeParse(payload);
+          if (p.success) set({ lastStamp: { seat: p.data.fromSeat, stampId: p.data.stampId, msgId: p.data.msgId } });
+          return;
+        }
         if (event !== EV.intent) return;              // ホストは intent だけ処理
         const parsed = IntentMessageSchema.safeParse(payload);
         if (!parsed.success) return;
@@ -145,6 +153,9 @@ export const useNetStore = create<NetState>((set, get) => ({
           }
           // ★重要: replace=true を使わない（アクション関数を消さないため）。マージで適用。
           useGameStore.setState(incoming);
+        } else if (event === EV.stamp) {
+          const p = StampMessageSchema.safeParse(payload);
+          if (p.success) set({ lastStamp: { seat: p.data.fromSeat, stampId: p.data.stampId, msgId: p.data.msgId } });
         }
       },
     });
@@ -194,6 +205,12 @@ export const useNetStore = create<NetState>((set, get) => ({
     if (s._transport && s.mySeat != null) {
       s._transport.send(EV.intent, { msgId: newId(), fromSeat: s.mySeat, intent });
     }
+  },
+
+  sendStamp: (stampId) => {
+    const s = get();
+    if (s.mode !== 'online' || !s._transport || s.mySeat == null) return;
+    s._transport.send(EV.stamp, { msgId: newId(), fromSeat: s.mySeat, stampId });
   },
 
   leaveRoom: () => {

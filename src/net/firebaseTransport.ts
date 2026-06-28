@@ -70,6 +70,12 @@ export function createFirebaseTransport(): NetTransport {
         h.onMessage('intent', decodeFromRtdb(snap.val()));
         remove(snap.ref);
       }));
+      // stamps: intent と同じく揮発的。受信したら remove して消費する。
+      // 送信者自身にも onChildAdded が届く（＝自分のスタンプも画面に出る）。
+      unsubs.push(onChildAdded(ref(db, `${base}/stamps`), (snap) => {
+        h.onMessage('stamp', decodeFromRtdb(snap.val()));
+        remove(snap.ref);
+      }));
       // presence（key → meta のマップをそのまま渡す。name/role をホスト側の席割りに使う）
       unsubs.push(onValue(ref(db, `${base}/presence`), (snap) => {
         h.onPresenceChange(snap.val() ?? {});
@@ -86,6 +92,7 @@ export function createFirebaseTransport(): NetTransport {
       if (event === 'snapshot') await set(ref(db, `${base}/state`), clean);
       else if (event === 'lobby') await set(ref(db, `${base}/lobby`), clean);
       else if (event === 'intent') await push(ref(db, `${base}/intents`), clean);
+      else if (event === 'stamp') await push(ref(db, `${base}/stamps`), clean);
     },
 
     async leave() {

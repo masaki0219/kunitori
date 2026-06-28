@@ -40,6 +40,7 @@ export const EV = {
   intent: 'intent',
   snapshot: 'snapshot',
   lobby: 'lobby',
+  stamp: 'stamp',
 } as const;
 
 // ゲスト → ホスト
@@ -118,4 +119,17 @@ export const LobbyMessageSchema = z.object({
     })
   ),
   started: z.boolean(),
+});
+
+// 任意のプレイヤー → 全員（揮発的なスタンプ）
+export interface StampMessage {
+  msgId: string;
+  fromSeat: Seat;
+  stampId: string;
+}
+
+export const StampMessageSchema = z.object({
+  msgId: z.string(),
+  fromSeat: z.number(),
+  stampId: z.string(),
 });

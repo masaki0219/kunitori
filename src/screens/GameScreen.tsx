@@ -9,6 +9,8 @@ import EventLog from '../components/Hud/EventLog';
 import PlayerHandPanel from '../components/Hud/PlayerHandPanel';
 import PlayerPanel from '../components/Hud/PlayerPanel';
 import TopBar from '../components/Hud/TopBar';
+import StampPicker from '../components/Hud/StampPicker';
+import StampDisplay from '../components/Hud/StampDisplay';
 import VassalModal from '../components/modals/VassalModal';
 import DiscardModal from '../components/modals/DiscardModal';
 import RulesModal from '../components/modals/RulesModal';
@@ -43,13 +45,14 @@ function setupBuildableVertices(state: ReturnType<typeof useGameStore.getState>)
 
 export default function GameScreen() {
   const state = useGameStore();
-  const { mode, role, mySeat, status, dispatch } = useNetStore();
+  const { mode, role, mySeat, status, dispatch, sendStamp } = useNetStore();
   const [buildMode, setBuildMode] = useState<BuildMode>(null);
   const [showTrade, setShowTrade] = useState(false);
   const [showCards, setShowCards] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showConfirmHome, setShowConfirmHome] = useState(false);
+  const [showStamp, setShowStamp] = useState(false);
   const aiRunning = useRef(false);
   const [aiTick, setAiTick] = useState(0);
   const { width, height } = useWindowDimensions();
@@ -224,7 +227,10 @@ export default function GameScreen() {
         style={[styles.topBar, { top: insets.top + SPACING.sm, left: insets.left + SPACING.md, right: insets.right + SPACING.md }]}
         onSettings={() => setShowSettings(true)}
         onRules={() => setShowRules(true)}
+        onStamp={mode === 'online' ? () => setShowStamp(true) : undefined}
       />
+
+      <StampDisplay style={{ top: insets.top + 56 }} />
 
       <EventLog
         style={[styles.eventLog, { top: insets.top + 56, left: insets.left + SPACING.md, width: compact ? 190 : 240 }]}
@@ -281,6 +287,13 @@ export default function GameScreen() {
       </View>
 
       {showRules ? <RulesModal onClose={() => setShowRules(false)} /> : null}
+
+      {showStamp ? (
+        <StampPicker
+          onPick={(stampId) => sendStamp(stampId)}
+          onClose={() => setShowStamp(false)}
+        />
+      ) : null}
 
       {showSettings ? (
         <SettingsModal

@@ -7,10 +7,10 @@ interface Props {
   style?: StyleProp<ViewStyle>;
   onSettings?: () => void;
   onRules?: () => void;
-  onChat?: () => void;
+  onStamp?: () => void;
 }
 
-export default function TopBar({ style, onSettings, onRules, onChat }: Props) {
+export default function TopBar({ style, onSettings, onRules, onStamp }: Props) {
   return (
     <View style={[styles.bar, style]}>
       <View style={styles.group}>
@@ -20,7 +20,7 @@ export default function TopBar({ style, onSettings, onRules, onChat }: Props) {
       </View>
       <View style={styles.group}>
         <LabeledButton icon="book" label="ルール" onPress={onRules} />
-        <LabeledButton icon="chatbubble-ellipses" label="チャット" onPress={onChat} disabled={!onChat} />
+        <LabeledButton icon="happy" label="スタンプ" onPress={onStamp} disabled={!onStamp} />
       </View>
     </View>
   );
