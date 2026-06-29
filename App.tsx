@@ -12,6 +12,7 @@ import ResultScreen from './src/screens/ResultScreen';
 import SetupScreen from './src/screens/SetupScreen';
 import TitleScreen from './src/screens/TitleScreen';
 import { useGameStore } from './src/store/gameStore';
+import { useProfileStore } from './src/store/profileStore';
 
 export default function App() {
   const screen = useGameStore((s) => s.screen);
@@ -31,6 +32,11 @@ export default function App() {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {
       // ロック失敗は致命的でないため握りつぶす（Web等では no-op）
     });
+  }, []);
+
+  // 端末に保存した表示名を起動時に読み込む
+  useEffect(() => {
+    useProfileStore.getState().hydrate();
   }, []);
 
   let content;
