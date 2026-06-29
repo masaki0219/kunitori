@@ -233,7 +233,7 @@ export default function GameScreen() {
       <StampDisplay style={{ top: insets.top + 56 }} />
 
       <EventLog
-        style={[styles.eventLog, { top: insets.top + 56, left: insets.left + SPACING.md, width: compact ? 190 : 240 }]}
+        style={[styles.eventLog, { top: insets.top + 56, left: insets.left + SPACING.md, width: compact ? 150 : 190 }]}
         log={state.log}
         guideText={guideText}
         isMyTurn={isMyTurn}

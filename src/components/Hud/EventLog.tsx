@@ -17,7 +17,8 @@ interface Props {
 export default function EventLog({ style, log, guideText, isMyTurn, turnName, compact, players }: Props) {
   const colorOf = (line: string) =>
     players?.find((p) => line.startsWith(p.name))?.color ?? PALETTE.washiDark;
-  const lines = (log ?? []).slice(compact ? -2 : -4);
+  const visibleCount = 10;
+  const lines = (log ?? []).slice(-visibleCount);
 
   return (
     <View style={[styles.wrap, style]}>
@@ -40,7 +41,7 @@ export default function EventLog({ style, log, guideText, isMyTurn, turnName, co
         ) : (
           <Text style={styles.linePlaceholder}>（まだありません）</Text>
         )}
-        {(log ?? []).length > (compact ? 2 : 4) ? (
+        {(log ?? []).length > visibleCount ? (
           <Ionicons name="chevron-down" size={14} color={PALETTE.washiDark} style={styles.chevron} />
         ) : null}
       </View>
