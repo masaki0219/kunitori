@@ -23,9 +23,19 @@ export function createInitialGame(config: CreateGameConfig): GameState {
   const board = assignPorts(assignTerrainAndTokens(buildBoardGeometry()));
   const banditHex = board.hexes.find((h) => h.terrain === 'wasteland')!;
 
+  // 表示名の一意化：ログ色は名前で引くため、重複名は「名前(2)」「名前(3)」へ退避する。
+  const usedNames = new Set<string>();
+  const dedupeName = (raw: string): string => {
+    let name = raw;
+    let k = 2;
+    while (usedNames.has(name)) { name = `${raw}(${k})`; k++; }
+    usedNames.add(name);
+    return name;
+  };
+
   const players: Player[] = config.players.map((p, i) => ({
     id: i,
-    name: p.name,
+    name: dedupeName(p.name),
     isAI: p.isAI,
     color: PLAYER_COLORS[i % PLAYER_COLORS.length],
     resources: emptyResources(),

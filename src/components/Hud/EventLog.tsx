@@ -15,8 +15,10 @@ interface Props {
 }
 
 export default function EventLog({ style, log, guideText, isMyTurn, turnName, compact, players }: Props) {
+  // 名前の前方一致で色を引くため、長い名前を先に判定する（「大名2」が「大名」へ誤ヒットするのを防ぐ）。
+  const sortedPlayers = [...(players ?? [])].sort((a, b) => b.name.length - a.name.length);
   const colorOf = (line: string) =>
-    players?.find((p) => line.startsWith(p.name))?.color ?? PALETTE.washiDark;
+    sortedPlayers.find((p) => line.startsWith(p.name))?.color ?? PALETTE.washiDark;
   const visibleCount = 10;
   const lines = (log ?? []).slice(-visibleCount);
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { GameState, ResourceType } from '../../game/types';
+import { GameState, PlayerId, ResourceType } from '../../game/types';
 import { computePrestige } from '../../game/scoring';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
 import { AVATAR_IMAGES } from '../../config/assets';
@@ -12,13 +12,14 @@ import Vp from '../icons/Vp';
 interface Props {
   style?: StyleProp<ViewStyle>;
   state: GameState;
+  viewerId: PlayerId;
   compact?: boolean;
 }
 
 const ORDER: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
 
-export default function PlayerHandPanel({ style, state, compact }: Props) {
-  const me = state.players.find((p) => p.id === state.currentPlayer);
+export default function PlayerHandPanel({ style, state, viewerId, compact }: Props) {
+  const me = state.players.find((p) => p.id === viewerId);
   if (!me) return null;
   const points = computePrestige(state, me.id);
   const avatarSize = compact ? 32 : 40;

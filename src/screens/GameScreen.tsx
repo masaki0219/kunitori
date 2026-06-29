@@ -104,6 +104,9 @@ export default function GameScreen() {
     ? !currentPlayer.isAI                                  // 従来のパススルー
     : state.currentPlayer === mySeat && !currentPlayer.isAI; // オンラインは自席のみ
 
+  // 表示基準。ローカルは手番者＝自分（従来挙動）、オンラインは自席で固定。
+  const viewerId = mode === 'online' && mySeat != null ? mySeat : state.currentPlayer;
+
   const guideText = (() => {
     switch (state.phase) {
       case 'setupPlacement':
@@ -245,6 +248,7 @@ export default function GameScreen() {
       <PlayerPanel
         style={[styles.playerRail, { top: insets.top + 56, right: insets.right + SPACING.md, width: compact ? 132 : 156 }]}
         state={state}
+        viewerId={viewerId}
         compact={compact}
       />
 
@@ -257,7 +261,7 @@ export default function GameScreen() {
         }]}
         pointerEvents="box-none"
       >
-        <PlayerHandPanel state={state} compact={compact} />
+        <PlayerHandPanel state={state} viewerId={viewerId} compact={compact} />
 
         <View style={styles.rightStack} pointerEvents="box-none">
           <View style={styles.diceRow} pointerEvents="box-none">

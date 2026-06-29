@@ -1,7 +1,7 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { GameState } from '../../game/types';
+import { GameState, PlayerId } from '../../game/types';
 import { countResources } from '../../game/resources';
 import { hasStrongholdNetwork } from '../../game/scoring';
 import { RAID_MIN } from '../../config/rules';
@@ -13,6 +13,7 @@ import Vp from '../icons/Vp';
 interface Props {
   state: GameState;
   style?: StyleProp<ViewStyle>;
+  viewerId: PlayerId;
   compact?: boolean;
 }
 
@@ -26,8 +27,8 @@ function visiblePoints(state: GameState, id: number): number {
   return forts * 1 + castles * 2 + lr + wm;
 }
 
-export default function PlayerPanel({ state, style, compact }: Props) {
-  const players = state.players.filter((p) => p.id !== state.currentPlayer);
+export default function PlayerPanel({ state, style, viewerId, compact }: Props) {
+  const players = state.players.filter((p) => p.id !== viewerId);
   const avatarSize = compact ? 24 : 30;
 
   return (
