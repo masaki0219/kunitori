@@ -1,12 +1,19 @@
-import { db } from './firebaseClient';
+import { db, authReady } from './firebaseClient';
 import { ref, onValue, onChildAdded, set, push, remove, onDisconnect, get } from 'firebase/database';
 import type { NetTransport } from './transport';
 import type { Member } from './messages';
 
 /** 部屋に snapshot（対局状態）が残っているかを一度だけ確認する（ホーム画面の復帰導線判定用）。 */
 export async function roomSnapshotExists(roomCode: string): Promise<boolean> {
+  await authReady;                       // 認証前に get するとルールで拒否されるため待つ
   const snap = await get(ref(db, `rooms/${roomCode}/state`));
   return snap.exists();
+}
+
+/** 部屋ごと（state/lobby/presence/intents/stamps すべて）を削除する。ホスト離脱時のクリーンアップ用。 */
+export async function deleteRoom(roomCode: string): Promise<void> {
+  await authReady;
+  await remove(ref(db, `rooms/${roomCode}`)).catch(() => {});
 }
 
 // RTDB は値が null のキー、および空配列([])・空オブジェクト({})のキーを書き込み時に
@@ -60,6 +67,7 @@ export function createFirebaseTransport(): NetTransport {
       code = roomCode; selfKey = self.key;
       selfMeta = self.meta ?? {};            // 再接続時の再書き込み用に保持
       h.onStatus('connecting');
+      await authReady;                        // 匿名認証完了を待つ（ルールが auth != null を要求）
       const base = `rooms/${code}`;
 
       // 接続状態（RTDB の特殊パス）。再接続のたびに presence を貼り直す。

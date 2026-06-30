@@ -1,0 +1,18 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "state":    { ".validate": "newData.hasChildren()" },
+        "lobby":    { ".validate": "newData.hasChildren()" },
+        "presence": { "$key": { ".validate": true } },
+        "intents":  { "$id": { ".validate": "newData.hasChild('msgId')" } },
+        "stamps":   { "$id": { ".validate": "newData.hasChild('msgId')" } },
+        "$other":   { ".validate": false }
+      }
+    }
+  }
+}

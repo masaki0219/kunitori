@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { useGameStore } from '../store/gameStore';
-import { createFirebaseTransport, roomSnapshotExists } from './firebaseTransport';
+import { createFirebaseTransport, roomSnapshotExists, deleteRoom } from './firebaseTransport';
 import type { NetTransport } from './transport';
 import { applyIntentOnHost, validateIntent } from './intent';
 import { toSnapshotState } from './snapshot';
@@ -189,6 +189,11 @@ export const useNetStore = create<NetState>((set, get) => ({
 
   leaveRoom: () => {
     const s = get();
+    // ホストが抜けるときは部屋ごと掃除する(ロビー放棄・対局終了後の離脱を確定的にクリーンアップ)。
+    // ゲストの離脱では削除しない(既存の presence remove のみ)。
+    if (s.role === 'host' && s.roomCode) {
+      deleteRoom(s.roomCode);  // 投げっぱなし。UI 遷移は待たせない。
+    }
     s._unsubscribeStore?.();
     s._transport?.leave();
     clearHostSession();

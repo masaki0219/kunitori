@@ -108,7 +108,7 @@ export default function SetupScreen() {
           <Text style={styles.startButtonText}>開始</Text>
         </Pressable>
 
-        <Pressable onPress={() => goToScreen('home')}>
+        <Pressable onPress={() => { useNetStore.getState().leaveRoom(); goToScreen('home'); }}>
           <Text style={styles.back}>← もどる</Text>
         </Pressable>
       </ScrollView>
