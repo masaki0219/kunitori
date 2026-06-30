@@ -1,3 +1,10 @@
+// aiPlayer は netStore（オンライン代行判定）を参照するため、実 Firebase へつながる
+// firebaseTransport をスタブ化する（このテストはローカル対戦のみを検証するため不要）。
+jest.mock('../../net/firebaseTransport', () => ({
+  createFirebaseTransport: jest.fn(),
+  roomSnapshotExists: jest.fn(),
+}));
+
 import { runAISetupTurn, runAITurn, setAIStepDelayScale } from '../aiPlayer';
 import { useGameStore } from '../../store/gameStore';
 

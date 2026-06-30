@@ -7,6 +7,7 @@ import { isValidSetupFort } from '../game/setup';
 import { effectiveTradeRate } from '../game/trade';
 import { GameState, Player, PlayerId, ResourceType ,Resources} from '../game/types';
 import { useGameStore } from '../store/gameStore';
+import { useNetStore } from '../net/netStore';
 import { chooseRoadTarget, evalTargetVertex, scoreVertex } from './aiStrategy';
 
 const ALL_RESOURCES: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
@@ -213,12 +214,16 @@ async function runMainPhase(): Promise<void> {
   }
 }
 
-// discardQueue 内のAIプレイヤーを自動で破棄処理する。人間プレイヤーはDiscardModal側で処理する。
+// discardQueue 内のAI/代行プレイヤーを自動で破棄処理する。人間プレイヤーはDiscardModal側で処理する。
 export async function resolveAIDiscards(): Promise<void> {
   for (let i = 0; i < 10; i++) {
     const state = useGameStore.getState();
     if (state.phase !== 'discard') return;
-    const aiId = state.discardQueue.find((id) => state.players.find((p) => p.id === id)?.isAI);
+    const net = useNetStore.getState();
+    const aiId = state.discardQueue.find((id) => {
+      const pl = state.players.find((p) => p.id === id);
+      return pl?.isAI || net.isAutoPlayedSeat(id);
+    });
     if (aiId === undefined) return; // 残りは人間待ち、またはキュー空
     const p = state.players.find((pp) => pp.id === aiId)!;
     useGameStore.getState().discardCards(aiId, autoDiscard(p));
@@ -230,7 +235,7 @@ export async function runAISetupTurn(): Promise<void> {
   while (true) {
     const state = useGameStore.getState();
     const player = state.players.find((p) => p.id === state.currentPlayer)!;
-    if (!player.isAI) return;
+    if (!player.isAI && !useNetStore.getState().isAutoPlayedSeat(player.id)) return;
     if (state.phase !== 'setupPlacement') return;
     if (state.setup.pendingRoadFromVertex !== null) return;
 
@@ -247,7 +252,7 @@ export async function runAISetupTurn(): Promise<void> {
 export async function runAITurn(): Promise<void> {
   let state = useGameStore.getState();
   const player = state.players.find((p) => p.id === state.currentPlayer)!;
-  if (!player.isAI) return;
+  if (!player.isAI && !useNetStore.getState().isAutoPlayedSeat(player.id)) return;
 
   if (state.phase === 'moveBandit') {
     const hexId = chooseBanditHex(state);

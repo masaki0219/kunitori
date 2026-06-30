@@ -9,6 +9,7 @@ import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION, BORDER, darken } from '../..
 import { AVATAR_IMAGES } from '../../config/assets';
 import Avatar from '../icons/Avatar';
 import Vp from '../icons/Vp';
+import StampBubble from './StampBubble';
 
 interface Props {
   state: GameState;
@@ -40,6 +41,7 @@ export default function PlayerPanel({ state, style, viewerId, compact }: Props) 
         const handCount = countResources(p.resources);
         return (
           <View key={p.id} style={[styles.card, { backgroundColor: darken(p.color, 0.15) }, isTurn && styles.cardActive, compact && styles.cardCompact]}>
+            <StampBubble seat={p.id} color={p.color} compact={compact} anchor="left" />
             <View style={styles.header}>
               <Avatar color={p.color} letter={p.name.slice(0, 1)} size={avatarSize} image={AVATAR_IMAGES[p.id] ?? null} />
               <Text style={styles.name} numberOfLines={1}>{p.name}{p.isAI ? '(AI)' : ''}</Text>

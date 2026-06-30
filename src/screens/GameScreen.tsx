@@ -10,7 +10,6 @@ import PlayerHandPanel from '../components/Hud/PlayerHandPanel';
 import PlayerPanel from '../components/Hud/PlayerPanel';
 import TopBar from '../components/Hud/TopBar';
 import StampPicker from '../components/Hud/StampPicker';
-import StampDisplay from '../components/Hud/StampDisplay';
 import VassalModal from '../components/modals/VassalModal';
 import DiscardModal from '../components/modals/DiscardModal';
 import RulesModal from '../components/modals/RulesModal';
@@ -74,7 +73,7 @@ export default function GameScreen() {
     const net = useNetStore.getState();
     if (!(net.mode === 'local' || net.role === 'host')) return; // ゲストはAIを動かさない
     if (!currentPlayer) return;
-    if (!currentPlayer.isAI) return;
+    if (!currentPlayer.isAI && !net.isAutoPlayedSeat(currentPlayer.id)) return;
     if (aiRunning.current) return;
     if (state.phase === 'gameOver') return;
     aiRunning.current = true;
@@ -85,7 +84,7 @@ export default function GameScreen() {
       // 次がAIの「自律開始局面」のときだけ再評価を強制する（discardは人間待ちのため除外＝無限ループ防止）。
       const s = useGameStore.getState();
       const cur = s.players.find((p) => p.id === s.currentPlayer);
-      if (cur?.isAI && (s.phase === 'roll' || s.phase === 'setupPlacement')) {
+      if ((cur?.isAI || useNetStore.getState().isAutoPlayedSeat(s.currentPlayer)) && (s.phase === 'roll' || s.phase === 'setupPlacement')) {
         setAiTick((t) => t + 1);
       }
     });
@@ -97,6 +96,15 @@ export default function GameScreen() {
     if (state.phase !== 'discard') return;
     resolveAIDiscards();
   }, [state.phase, state.discardQueue]);
+
+  useEffect(() => {
+    const net = useNetStore.getState();
+    if (net.role !== 'host') return;
+    const t = state.pendingTrade;
+    if (t && net.isAutoPlayedSeat(t.to)) {
+      useGameStore.getState().respondTrade(false); // 代行席は提案を自動拒否
+    }
+  }, [state.pendingTrade]);
 
   if (!currentPlayer) return null;
 
@@ -232,8 +240,6 @@ export default function GameScreen() {
         onRules={() => setShowRules(true)}
         onStamp={mode === 'online' ? () => setShowStamp(true) : undefined}
       />
-
-      <StampDisplay style={{ top: insets.top + 56 }} />
 
       <EventLog
         style={[styles.eventLog, { top: insets.top + 56, left: insets.left + SPACING.md, width: compact ? 150 : 190 }]}

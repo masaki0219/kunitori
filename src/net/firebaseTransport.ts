@@ -1,6 +1,13 @@
 import { db } from './firebaseClient';
-import { ref, onValue, onChildAdded, set, push, remove, onDisconnect } from 'firebase/database';
+import { ref, onValue, onChildAdded, set, push, remove, onDisconnect, get } from 'firebase/database';
 import type { NetTransport } from './transport';
+import type { Member } from './messages';
+
+/** 部屋に snapshot（対局状態）が残っているかを一度だけ確認する（ホーム画面の復帰導線判定用）。 */
+export async function roomSnapshotExists(roomCode: string): Promise<boolean> {
+  const snap = await get(ref(db, `rooms/${roomCode}/state`));
+  return snap.exists();
+}
 
 // RTDB は値が null のキー、および空配列([])・空オブジェクト({})のキーを書き込み時に
 // 削除してしまう。GameState には null を取り得るフィールド（dice/winner/
@@ -45,17 +52,25 @@ function decodeFromRtdb(value: unknown): unknown {
 export function createFirebaseTransport(): NetTransport {
   let code = '';
   let selfKey = '';
+  let selfMeta: Partial<Member> = {};
   const unsubs: Array<() => void> = [];
 
   return {
     async join(roomCode, self, h) {
       code = roomCode; selfKey = self.key;
+      selfMeta = self.meta ?? {};            // 再接続時の再書き込み用に保持
       h.onStatus('connecting');
       const base = `rooms/${code}`;
 
-      // 接続状態（RTDB の特殊パス）
+      // 接続状態（RTDB の特殊パス）。再接続のたびに presence を貼り直す。
       unsubs.push(onValue(ref(db, '.info/connected'), (snap) => {
-        h.onStatus(snap.val() ? 'connected' : 'disconnected');
+        const connected = !!snap.val();
+        h.onStatus(connected ? 'connected' : 'disconnected');
+        if (connected && selfKey) {
+          const selfRef = ref(db, `${base}/presence/${selfKey}`);
+          set(selfRef, selfMeta).catch(() => {});
+          onDisconnect(selfRef).remove();
+        }
       }));
       // state（snapshot）: アタッチ時に最新値を即時通知 → 後から参加したゲストも自動で追いつく
       unsubs.push(onValue(ref(db, `${base}/state`), (snap) => {

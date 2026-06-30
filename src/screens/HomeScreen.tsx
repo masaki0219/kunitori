@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView, Platform, Pressable, ScrollView,
   StyleSheet, Text, TextInput,
@@ -8,13 +8,19 @@ import { COLORS } from '../config/labels';
 import { useGameStore } from '../store/gameStore';
 import { useNetStore } from '../net/netStore';
 import { useProfileStore } from '../store/profileStore';
+import type { HostSession } from '../net/sessionPersist';
 
 export default function HomeScreen() {
   const goToScreen = useGameStore((s) => s.goToScreen);
-  const { startLocal, hostCreateRoom } = useNetStore();
+  const { startLocal, hostCreateRoom, hostResumeRoom, checkResumableSession } = useNetStore();
   const name = useProfileStore((s) => s.name);
   const setName = useProfileStore((s) => s.setName);
   const insets = useSafeAreaInsets();
+  const [resumable, setResumable] = useState<HostSession | null>(null);
+
+  useEffect(() => {
+    checkResumableSession().then(setResumable);
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -43,6 +49,12 @@ export default function HomeScreen() {
           selectTextOnFocus
           returnKeyType="done"
         />
+
+        {resumable ? (
+          <Pressable style={styles.primary} onPress={() => hostResumeRoom(resumable.roomCode, resumable.hostName)}>
+            <Text style={styles.primaryText}>対局に復帰する（部屋 {resumable.roomCode}）</Text>
+          </Pressable>
+        ) : null}
 
         <Pressable style={styles.primary} onPress={() => { startLocal(); goToScreen('setup'); }}>
           <Text style={styles.primaryText}>1台で遊ぶ（ローカル対戦）</Text>

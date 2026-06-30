@@ -5,15 +5,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../config/theme';
 import { useGameStore } from '../store/gameStore';
 import { useNetStore } from '../net/netStore';
+import { useProfileStore } from '../store/profileStore';
 
 interface PlayerConfig {
   name: string;
   isAI: boolean;
 }
 
+// 既定名は空にしておき、表示は placeholder（大名1…）で行う。
+// こうするとタップ→1打目で消える挙動になり、毎回の削除が不要になる。
 function defaultPlayers(count: number): PlayerConfig[] {
   return Array.from({ length: count }, (_, i) => ({
-    name: `大名${i + 1}`,
+    name: '',
     isAI: i > 0,
   }));
 }
@@ -23,6 +26,7 @@ export default function SetupScreen() {
   const goToScreen = useGameStore((s) => s.goToScreen);
   const [count, setCount] = useState(3);
   const [players, setPlayers] = useState<PlayerConfig[]>(defaultPlayers(3));
+  const profileName = useProfileStore((s) => s.name);
   const insets = useSafeAreaInsets();
 
   const setCountAndResize = (n: number) => {
@@ -40,15 +44,29 @@ export default function SetupScreen() {
 
   const hasHuman = players.some((p) => !p.isAI);
 
+  const onStart = () => {
+    useNetStore.getState().startLocal();
+    // 空欄は placeholder と同じ既定名（大名1…）へ補完してから開始する。
+    // setup.ts の重複名回避（dedupeName）が空名で壊れないよう、ここで必ず確定させる。
+    const resolved = players.map((p, i) => ({
+      ...p,
+      name: p.name.trim() || (i === 0 && profileName.trim() ? profileName : `大名${i + 1}`),
+    }));
+    startGame({ players: resolved });
+  };
+
   return (
     <View style={styles.root}>
       <LinearGradient colors={[PALETTE.wood500, PALETTE.wood900]} style={StyleSheet.absoluteFill} />
-      <ScrollView contentContainerStyle={[styles.container, {
-        paddingLeft: insets.left + SPACING.xl,
-        paddingRight: insets.right + SPACING.xl,
-        paddingTop: insets.top + SPACING.xl,
-        paddingBottom: insets.bottom + SPACING.xl,
-      }]}>
+      <ScrollView
+        contentContainerStyle={[styles.container, {
+          paddingLeft: insets.left + SPACING.xl,
+          paddingRight: insets.right + SPACING.xl,
+          paddingTop: insets.top + SPACING.xl,
+          paddingBottom: insets.bottom + SPACING.xl,
+        }]}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.heading}>プレイヤー設定</Text>
 
         <View style={styles.countRow}>
@@ -70,6 +88,10 @@ export default function SetupScreen() {
               style={styles.input}
               value={p.name}
               onChangeText={(t) => updatePlayer(i, { name: t })}
+              placeholder={i === 0 && profileName.trim() ? profileName : `大名${i + 1}`}
+              placeholderTextColor="#bbb"
+              selectTextOnFocus
+              returnKeyType="done"
             />
             <Text style={styles.switchLabel}>{p.isAI ? 'AI' : '人間'}</Text>
             <Switch value={p.isAI} onValueChange={(v) => updatePlayer(i, { isAI: v })} trackColor={{ true: PALETTE.gold }} />
@@ -81,7 +103,7 @@ export default function SetupScreen() {
         <Pressable
           style={[styles.startButton, !hasHuman && styles.startButtonDisabled]}
           disabled={!hasHuman}
-          onPress={() => { useNetStore.getState().startLocal(); startGame({ players }); }}
+          onPress={onStart}
         >
           <Text style={styles.startButtonText}>開始</Text>
         </Pressable>

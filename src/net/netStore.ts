@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { useGameStore } from '../store/gameStore';
-import { createFirebaseTransport } from './firebaseTransport';
+import { createFirebaseTransport, roomSnapshotExists } from './firebaseTransport';
 import type { NetTransport } from './transport';
 import { applyIntentOnHost, validateIntent } from './intent';
 import { toSnapshotState } from './snapshot';
@@ -11,6 +11,7 @@ import {
 import { newId } from './ids';
 import { generateRoomCode, normalizeRoomCode } from './roomCode';
 import { emptyResources } from '../game/resources';
+import { saveHostSession, loadHostSession, clearHostSession, type HostSession } from './sessionPersist';
 
 interface NetState {
   mode: 'local' | 'online';
@@ -36,10 +37,16 @@ interface NetState {
   dispatch: (intent: Intent) => void;          // UIからの操作はすべてこれを通す
   sendStamp: (stampId: string) => void;        // 揮発的スタンプを全員へ送る
   leaveRoom: () => void;
+  hostResumeRoom: (roomCode: string, hostName: string) => Promise<void>; // ホストのプロセス断からの復帰
+  checkResumableSession: () => Promise<HostSession | null>;              // 復帰可能なセッションが残っているか
 
   // 内部ヘルパー（ホスト用）
   _hostBroadcastLobby: () => void;
   _hostRebroadcastSnapshot: () => void;
+  _hostHandlePresence: (present: Record<string, Partial<Member>>) => void;
+
+  // 公開API
+  isAutoPlayedSeat: (seat: Seat) => boolean;
 }
 
 export const useNetStore = create<NetState>((set, get) => ({
@@ -61,43 +68,7 @@ export const useNetStore = create<NetState>((set, get) => ({
 
     await transport.join(code, { key: 'seat-0', meta: { seat: 0, name: hostName, role: 'host' } }, {
       onStatus: (st) => set({ status: st }),
-      onPresenceChange: (present) => {
-        // 開始前（ロビー中）に限り、未割り当てのゲスト（pending-*）へ新しい席を割り当てる。
-        // 対局開始後は既存の席構成を変えない（再接続は名前一致で元の席に復帰する想定）。
-        const inLobby = useGameStore.getState().screen === 'lobby';
-        set((s) => {
-          // online フラグ更新: host は常に online、AI は presence を持たないため不変、
-          // ゲストは自分の _presenceKey が present に含まれているかで判定。
-          let members = s.members.map((m) => {
-            if (m.role === 'host') return { ...m, online: true };
-            if (m.isAI) return m;
-            return m._presenceKey ? { ...m, online: m._presenceKey in present } : m;
-          });
-
-          if (inLobby) {
-            const assignedKeys = new Set(members.map((m) => m._presenceKey).filter(Boolean));
-            for (const [key, meta] of Object.entries(present)) {
-              if (!key.startsWith('pending-')) continue;     // ホスト自身やAIは対象外
-              if (assignedKeys.has(key)) continue;            // 既に席がある
-              if ((meta as Partial<Member>)?.role !== 'guest') continue;
-              const seat = members.length;
-              members = [...members, {
-                seat,
-                name: (meta as Partial<Member>)?.name || `プレイヤー${seat + 1}`,
-                role: 'guest',
-                isAI: false,
-                online: true,
-                _presenceKey: key,
-              }];
-              assignedKeys.add(key);
-            }
-          }
-
-          return { members };
-        });
-        get()._hostBroadcastLobby();
-        get()._hostRebroadcastSnapshot();
-      },
+      onPresenceChange: (present) => get()._hostHandlePresence(present),
       onMessage: (event, payload) => {
         if (event === EV.stamp) {                     // スタンプは host/guest 共通で受ける
           const p = StampMessageSchema.safeParse(payload);
@@ -180,6 +151,7 @@ export const useNetStore = create<NetState>((set, get) => ({
       const rev = st._rev + 1;
       set({ _rev: rev });
       st._transport.send(EV.snapshot, { rev, state: toSnapshotState(store as any) });
+      if (store.screen === 'result') clearHostSession();
     });
     set({ _unsubscribeStore: unsub });
     // 2) members（seat昇順）から players を構築して開始
@@ -187,6 +159,8 @@ export const useNetStore = create<NetState>((set, get) => ({
       .map((m) => ({ name: m.name, isAI: m.isAI }));
     useGameStore.getState().startGame({ players });
     // startGame で screen='game' になり、購読経由で snapshot がゲストへ届く
+    const hostName = s.members.find((m) => m.role === 'host')?.name ?? '大名';
+    saveHostSession({ roomCode: s.roomCode!, hostName });
   },
 
   // --- UIの全操作はここを通す ---
@@ -217,8 +191,86 @@ export const useNetStore = create<NetState>((set, get) => ({
     const s = get();
     s._unsubscribeStore?.();
     s._transport?.leave();
+    clearHostSession();
     set({ mode: 'local', role: null, mySeat: null, roomCode: null,
           status: 'idle', members: [], _transport: null, _unsubscribeStore: null });
+  },
+
+  // --- ホスト: プロセス断からの復帰 ---
+  hostResumeRoom: async (roomCode, hostName) => {
+    const transport = createFirebaseTransport();
+    set({ mode: 'online', role: 'host', mySeat: 0, roomCode,
+          members: [], _transport: transport, _rev: 0, _seenMsgIds: new Set() });
+
+    let resumed = false;
+    await transport.join(roomCode, { key: 'seat-0', meta: { seat: 0, name: hostName, role: 'host' } }, {
+      onStatus: (st) => set({ status: st }),
+      onPresenceChange: (present) => get()._hostHandlePresence(present),
+      onMessage: (event, payload) => {
+        if (event === EV.stamp) {
+          const p = StampMessageSchema.safeParse(payload);
+          if (p.success) set({ lastStamp: { seat: p.data.fromSeat, stampId: p.data.stampId, msgId: p.data.msgId } });
+          return;
+        }
+        // 復帰直後の一度だけ、RTDB に残る最新 snapshot を取り込む（以後の自己発信分は既存hostと同じく無視）
+        if (!resumed && event === EV.snapshot) {
+          const p = SnapshotMessageSchema.safeParse(payload);
+          if (!p.success) return;
+          resumed = true;
+          set({ _rev: p.data.rev });
+          const incoming = p.data.state as any;
+          if (Array.isArray(incoming.players)) {
+            incoming.players = incoming.players.map((pl: any) =>
+              pl && !pl.resources ? { ...pl, resources: emptyResources() } : pl
+            );
+          }
+          useGameStore.setState(incoming); // マージ復元（ゲスト経路と同じ）
+          // members を state.players から再構築（seat=i, 名前/isAI を引き継ぐ。_presenceKey は再接続で埋まる）
+          const members: Member[] = (incoming.players as any[]).map((pl, i) => ({
+            seat: i,
+            name: pl.name,
+            role: i === 0 ? 'host' : 'guest',
+            isAI: !!pl.isAI,
+            online: i === 0,
+            _presenceKey: i === 0 ? 'seat-0' : undefined,
+          }));
+          set({ members });
+          // ここで startOnlineGame と同じ store 購読を張る（以後のホスト操作が配信される）
+          const unsub = useGameStore.subscribe((store) => {
+            const st = get();
+            if (st.role !== 'host' || !st._transport) return;
+            const rev = st._rev + 1;
+            set({ _rev: rev });
+            st._transport.send(EV.snapshot, { rev, state: toSnapshotState(store as any) });
+            if (store.screen === 'result') clearHostSession();
+          });
+          set({ _unsubscribeStore: unsub });
+          return;
+        }
+        if (event !== EV.intent) return;
+        const parsed = IntentMessageSchema.safeParse(payload);
+        if (!parsed.success) return;
+        const { msgId, fromSeat, intent } = parsed.data;
+        if (get()._seenMsgIds.has(msgId)) return;
+        get()._seenMsgIds.add(msgId);
+        const state = toSnapshotState(useGameStore.getState());
+        if (!validateIntent(state, intent as Intent, fromSeat)) return;
+        applyIntentOnHost(intent as Intent);
+      },
+    });
+    saveHostSession({ roomCode, hostName });
+  },
+
+  checkResumableSession: async () => {
+    const session = await loadHostSession();
+    if (!session) return null;
+    try {
+      if (await roomSnapshotExists(session.roomCode)) return session;
+    } catch {
+      return null; // 接続不能時は判断できないため復帰導線を出さない
+    }
+    await clearHostSession(); // 残骸（期限切れ）は破棄
+    return null;
   },
 
   // --- 内部ヘルパー（ホスト用） ---
@@ -233,5 +285,66 @@ export const useNetStore = create<NetState>((set, get) => ({
     const store = useGameStore.getState();
     if (store.screen !== 'game' && store.screen !== 'result') return;
     s._transport.send(EV.snapshot, { rev: s._rev, state: toSnapshotState(store) });
+  },
+  _hostHandlePresence: (present) => {
+    // 開始前（ロビー中）に限り、未割り当てのゲスト（pending-*）へ新しい席を割り当てる。
+    // 対局開始後は既存の席構成を変えない代わりに、名前一致での再バインドを試みる（フェーズ2）。
+    const inLobby = useGameStore.getState().screen === 'lobby';
+    set((s) => {
+      // online フラグ更新: host は常に online、AI は presence を持たないため不変、
+      // ゲストは自分の _presenceKey が present に含まれているかで判定。
+      let members = s.members.map((m) => {
+        if (m.role === 'host') return { ...m, online: true };
+        if (m.isAI) return m;
+        return m._presenceKey ? { ...m, online: m._presenceKey in present } : m;
+      });
+
+      if (inLobby) {
+        const assignedKeys = new Set(members.map((m) => m._presenceKey).filter(Boolean));
+        for (const [key, meta] of Object.entries(present)) {
+          if (!key.startsWith('pending-')) continue;     // ホスト自身やAIは対象外
+          if (assignedKeys.has(key)) continue;            // 既に席がある
+          if ((meta as Partial<Member>)?.role !== 'guest') continue;
+          const seat = members.length;
+          members = [...members, {
+            seat,
+            name: (meta as Partial<Member>)?.name || `プレイヤー${seat + 1}`,
+            role: 'guest',
+            isAI: false,
+            online: true,
+            _presenceKey: key,
+          }];
+          assignedKeys.add(key);
+        }
+      } else {
+        // 対局中: 既存のオフライン人間席を、名前一致する未使用 pending-* キーへ再バインド
+        const boundKeys = new Set(members.map((m) => m._presenceKey).filter(Boolean));
+        members = members.map((m) => {
+          if (m.role === 'host' || m.isAI || m.online) return m; // 対象は「人間・オフライン」のみ
+          const hit = Object.entries(present).find(([key, meta]) =>
+            key.startsWith('pending-') &&
+            !boundKeys.has(key) &&
+            (meta as Partial<Member>)?.name === m.name
+          );
+          if (!hit) return m;
+          boundKeys.add(hit[0]);
+          return { ...m, _presenceKey: hit[0], online: true };
+        });
+      }
+
+      return { members };
+    });
+    get()._hostBroadcastLobby();
+    get()._hostRebroadcastSnapshot();
+  },
+
+  // ホストのみ true を返す。指定席が「人間 かつ 現在オフライン」なら代行対象。
+  // host席(seat0)は常に online=true、AI席は isAI=true なので自然に除外される。
+  isAutoPlayedSeat: (seat) => {
+    const s = get();
+    if (s.mode !== 'online' || s.role !== 'host') return false;
+    const m = s.members.find((mm) => mm.seat === seat);
+    if (!m) return false;
+    return !m.isAI && !m.online;
   },
 }));
