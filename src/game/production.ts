@@ -1,6 +1,6 @@
 import { rollTwoDice } from '../utils/random';
 import { needsDiscard } from './bandit';
-import { daimyoTurnIncome } from './daimyo';
+import { daimyoRebalance } from './daimyo';
 import { addResources } from './resources';
 import { terrainResource } from './setup';
 import { turnIncome } from './vassals';
@@ -31,7 +31,11 @@ export function produceResources(state: GameState, sum: number): GameState {
     let resources = add ? addResources(p.resources, add) : p.resources;
     if (p.id === state.currentPlayer) {
       resources = addResources(resources, fromVassals);
-      resources = addResources(resources, daimyoTurnIncome(p));
+      // 織田：収入反映後の手札で、余剰(3以上)を1つ不足資源へ振り替える
+      const rb = daimyoRebalance({ ...p, resources });
+      if (rb) {
+        resources = { ...resources, [rb.from]: resources[rb.from] - 1, [rb.to]: resources[rb.to] + 1 };
+      }
     }
     return { ...p, resources };
   });

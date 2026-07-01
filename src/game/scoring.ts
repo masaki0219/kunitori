@@ -1,4 +1,5 @@
-import { NETWORK_MIN, PRESTIGE, RAID_MIN, WIN_PRESTIGE } from '../config/rules';
+import { PRESTIGE, RAID_MIN, WIN_PRESTIGE } from '../config/rules';
+import { networkMinFor } from './daimyo';
 import { prestigeFromVassals } from './vassals';
 import { appendLog } from './log';
 import { GameState, PlayerId } from './types';
@@ -20,6 +21,8 @@ export function computePrestige(state: GameState, playerId: PlayerId): number {
 // 自分の街道で連結された1つのネットワーク上に、自分の拠点(砦/城)が NETWORK_MIN 個以上
 // 載っていれば true。「最長」ではなく「拠点をいくつ束ねたか」を評価する。
 export function hasStrongholdNetwork(state: GameState, playerId: PlayerId): boolean {
+  const player = state.players.find((p) => p.id === playerId)!;
+  const minCount = networkMinFor(player);
   const adj = new Map<number, number[]>();
   const link = (a: number, b: number) => {
     const xa = adj.get(a); if (xa) xa.push(b); else adj.set(a, [b]);
@@ -48,7 +51,7 @@ export function hasStrongholdNetwork(state: GameState, playerId: PlayerId): bool
         if (!visited.has(n)) { visited.add(n); queue.push(n); }
       }
     }
-    if (count >= NETWORK_MIN) return true;
+    if (count >= minCount) return true;
   }
   return false;
 }
