@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatCost } from '../../config/labels';
 import { COSTS, PIECE_LIMITS } from '../../config/rules';
 import { ACTION_COLORS, PALETTE, RADIUS, SPACING, TYPE, ELEVATION } from '../../config/theme';
+import { applyDaimyoCost } from '../../game/daimyo';
 import { canAfford } from '../../game/resources';
 import { GamePhase, Player } from '../../game/types';
 
@@ -43,7 +44,8 @@ export default function ActionBar({
 
   const canBuildRoad = player.piecesLeft.road > 0 && canAfford(player.resources, COSTS.road);
   const canBuildFort = player.piecesLeft.fort > 0 && canAfford(player.resources, COSTS.fort);
-  const canBuildCastle = player.piecesLeft.castle > 0 && canAfford(player.resources, COSTS.castle);
+  const castleCost = applyDaimyoCost(player, 'castle', COSTS.castle);
+  const canBuildCastle = player.piecesLeft.castle > 0 && canAfford(player.resources, castleCost);
   const canBuyCard = canAfford(player.resources, COSTS.card);
 
   return (
@@ -78,7 +80,7 @@ export default function ActionBar({
         icon="castle"
         label="城"
         color={ACTION_COLORS.castle}
-        cost={formatCost(COSTS.castle)}
+        cost={formatCost(castleCost)}
         active={buildMode === 'castle'}
         affordable={canBuildCastle}
         left={player.piecesLeft.castle}

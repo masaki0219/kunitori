@@ -16,6 +16,7 @@ function makePlayer(id: number): Player {
     name: `P${id}`,
     isAI: false,
     color: '#000',
+    daimyo: 'toyotomi',
     resources: emptyResources(),
     vassals: [],
     raids: 0,

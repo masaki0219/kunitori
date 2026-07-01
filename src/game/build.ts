@@ -1,5 +1,6 @@
 import { COSTS } from '../config/rules';
 import { ownRoadsAtVertex } from './board';
+import { applyDaimyoCost } from './daimyo';
 import { canAfford, payCost } from './resources';
 import { recomputeAfterBuild } from './scoring';
 import { isValidSetupFort } from './setup';
@@ -105,15 +106,16 @@ export function buildCastle(state: GameState, vertexId: number): GameState {
   const player = getPlayer(state, playerId);
   const existing = state.buildings.find((b) => b.vertexId === vertexId);
 
+  const castleCost = applyDaimyoCost(player, 'castle', COSTS.castle);
   if (!existing || existing.owner !== playerId || existing.type !== 'fort') return state;
   if (player.piecesLeft.castle <= 0) return state;
-  if (!canAfford(player.resources, COSTS.castle)) return state;
+  if (!canAfford(player.resources, castleCost)) return state;
 
   const players = state.players.map((p) =>
     p.id === playerId
       ? {
           ...p,
-          resources: payCost(p.resources, COSTS.castle),
+          resources: payCost(p.resources, castleCost),
           piecesLeft: {
             ...p.piecesLeft,
             castle: p.piecesLeft.castle - 1,

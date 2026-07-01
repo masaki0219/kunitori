@@ -1,5 +1,6 @@
 import { rollTwoDice } from '../utils/random';
 import { needsDiscard } from './bandit';
+import { daimyoTurnIncome } from './daimyo';
 import { addResources } from './resources';
 import { terrainResource } from './setup';
 import { turnIncome } from './vassals';
@@ -28,7 +29,10 @@ export function produceResources(state: GameState, sum: number): GameState {
     const fromVassals = turnIncome(p);
     if (!add && p.id !== state.currentPlayer) return p;
     let resources = add ? addResources(p.resources, add) : p.resources;
-    if (p.id === state.currentPlayer) resources = addResources(resources, fromVassals);
+    if (p.id === state.currentPlayer) {
+      resources = addResources(resources, fromVassals);
+      resources = addResources(resources, daimyoTurnIncome(p));
+    }
     return { ...p, resources };
   });
 

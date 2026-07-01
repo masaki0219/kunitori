@@ -1,11 +1,12 @@
 import { COSTS, AI_TRADE_LOOP_LIMIT } from '../config/rules';
 import { playersAdjacentToHex } from '../game/board';
 import { getBuildableEdges, getBuildableVertices, getUpgradableForts } from '../game/build';
+import { applyDaimyoCost } from '../game/daimyo';
 import { canAfford } from '../game/resources';
 import { computePrestige } from '../game/scoring';
 import { isValidSetupFort } from '../game/setup';
 import { effectiveTradeRate } from '../game/trade';
-import { GameState, Player, PlayerId, ResourceType ,Resources} from '../game/types';
+import { GameState, Player, PlayerId, ResourceType, Resources } from '../game/types';
 import { useGameStore } from '../store/gameStore';
 import { useNetStore } from '../net/netStore';
 import { chooseRoadTarget, evalTargetVertex, scoreVertex } from './aiStrategy';
@@ -128,8 +129,9 @@ async function tryBuild(state: GameState): Promise<boolean> {
   const playerId = state.currentPlayer;
   const player = state.players.find((p) => p.id === playerId)!;
 
+  const castleCost = applyDaimyoCost(player, 'castle', COSTS.castle);
   const upgradable = getUpgradableForts(state, playerId);
-  if (upgradable.length > 0 && canAfford(player.resources, COSTS.castle)) {
+  if (upgradable.length > 0 && canAfford(player.resources, castleCost)) {
     store.buildCastle(upgradable[0]);
     return true;
   }
@@ -188,11 +190,12 @@ async function runMainPhase(): Promise<void> {
     }
 
     if (tradeCount < AI_TRADE_LOOP_LIMIT) {
+      const currentPlayer = state.players.find((p) => p.id === state.currentPlayer)!;
       const upgradable = getUpgradableForts(state, state.currentPlayer);
       const connectedFort = getBuildableVertices(state, state.currentPlayer).length > 0;
 
-      let goalCost = COSTS.road;
-      if (upgradable.length > 0) goalCost = COSTS.castle;
+      let goalCost: Partial<Record<ResourceType, number>> = COSTS.road;
+      if (upgradable.length > 0) goalCost = applyDaimyoCost(currentPlayer, 'castle', COSTS.castle);
       else if (connectedFort) goalCost = COSTS.fort;
 
       const traded = tryBankTradeTowardCost(state, goalCost);

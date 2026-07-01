@@ -1,8 +1,9 @@
 import { PIECE_LIMITS, PLAYER_COLORS } from '../config/rules';
 import { assignPorts, assignTerrainAndTokens, buildBoardGeometry } from './board';
+import { assignDaimyos } from './daimyo';
 import { emptyResources, addResources } from './resources';
 import { buildVassalDeck } from './vassals';
-import { GameState, Player, PlayerId, ResourceType, TerrainType } from './types';
+import { DaimyoId, GameState, Player, PlayerId, ResourceType, TerrainType } from './types';
 
 export function terrainResource(t: TerrainType): ResourceType | null {
   switch (t) {
@@ -16,7 +17,7 @@ export function terrainResource(t: TerrainType): ResourceType | null {
 }
 
 export interface CreateGameConfig {
-  players: { name: string; isAI: boolean }[];
+  players: { name: string; isAI: boolean; daimyo?: DaimyoId }[];
 }
 
 export function createInitialGame(config: CreateGameConfig): GameState {
@@ -33,11 +34,17 @@ export function createInitialGame(config: CreateGameConfig): GameState {
     return name;
   };
 
+  const daimyos = assignDaimyos(
+    config.players.length,
+    config.players.map((p) => p.daimyo)
+  );
+
   const players: Player[] = config.players.map((p, i) => ({
     id: i,
     name: dedupeName(p.name),
     isAI: p.isAI,
     color: PLAYER_COLORS[i % PLAYER_COLORS.length],
+    daimyo: daimyos[i],
     resources: emptyResources(),
     vassals: [],
     raids: 0,

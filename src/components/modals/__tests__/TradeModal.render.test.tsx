@@ -15,6 +15,7 @@ function makePlayer(id: number, overrides: Partial<Player> = {}): Player {
     name: `P${id}`,
     isAI: false,
     color: '#000',
+    daimyo: 'toyotomi',
     resources: emptyResources(),
     vassals: [],
     raids: 0,

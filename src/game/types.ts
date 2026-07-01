@@ -11,6 +11,8 @@ export type TerrainType =
 
 export type VassalId = 'fushin' | 'gunshi' | 'kaisen' | 'daikan' | 'kura' | 'hatamoto';
 
+export type DaimyoId = 'oda' | 'toyotomi' | 'tokugawa';
+
 export type BuildingType = 'fort' | 'castle';
 
 export type PlayerId = number; // 0..3
@@ -78,6 +80,7 @@ export interface Player {
   name: string;
   isAI: boolean;
   color: string;                 // 表示色
+  daimyo: DaimyoId;              // 開始時に選ぶ大名（固有能力）
   resources: Resources;          // 手札
   vassals: VassalId[];           // 登用済みの家臣（常時公開）
   raids: number;                 // 略奪成功回数（戦功用）

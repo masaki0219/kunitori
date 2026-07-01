@@ -1,5 +1,5 @@
-import { BANK_TRADE_RATE } from '../config/rules';
 import { canAfford, payCost, addResources } from './resources';
+import { bankRateFor } from './daimyo';
 import { tradeRateDelta } from './vassals';
 import { appendLog } from './log';
 import { RESOURCE_SHORT_LABELS } from '../config/labels';
@@ -8,7 +8,7 @@ import { GameState, PlayerId, ResourceType } from './types';
 // プレイヤーが建物を置いている港を考慮した、give 資源の最良（最小）レート
 export function effectiveTradeRate(state: GameState, playerId: PlayerId, give: ResourceType): number {
   const player = state.players.find((p) => p.id === playerId)!;
-  let rate = BANK_TRADE_RATE; // 楽市3
+  let rate = bankRateFor(player);
   const myVertexIds = new Set(
     state.buildings.filter((b) => b.owner === playerId).map((b) => b.vertexId)
   );

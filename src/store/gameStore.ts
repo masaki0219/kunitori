@@ -5,7 +5,7 @@ import { buildCastle as buildCastleFn, buildFort as buildFortFn, buildRoad as bu
 import { rollAndProduce } from '../game/production';
 import { createInitialGame, placeSetupFort as placeSetupFortFn, placeSetupRoad as placeSetupRoadFn } from '../game/setup';
 import { bankTrade as bankTradeFn, proposeTrade as proposeTradeFn, respondTrade as respondTradeFn } from '../game/trade';
-import { GameState, PlayerId, ResourceType } from '../game/types';
+import { DaimyoId, GameState, PlayerId, ResourceType } from '../game/types';
 
 function placeholderState(): GameState {
   return {
@@ -30,7 +30,7 @@ function placeholderState(): GameState {
 
 interface GameStore extends GameState {
   goToScreen: (s: GameState['screen']) => void;
-  startGame: (config: { players: { name: string; isAI: boolean }[] }) => void;
+  startGame: (config: { players: { name: string; isAI: boolean; daimyo?: DaimyoId }[] }) => void;
   placeSetupFort: (vertexId: number) => void;
   placeSetupRoad: (edgeId: number) => void;
 
