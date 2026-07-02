@@ -1,9 +1,11 @@
 import { buildBoardGeometry } from '../../game/board';
 import { getBuildableEdges } from '../../game/build';
 import { emptyResources } from '../../game/resources';
+import { networkStrongholdCount } from '../../game/scoring';
 import { GameState, Player, PlayerId } from '../../game/types';
 import {
   networkVertices,
+  networkGainBonus,
   chooseRoadTarget,
   evalTargetVertex,
   scoreVertex,
@@ -171,6 +173,83 @@ describe('evalTargetVertex', () => {
     expect(evalTargetVertex(state, 0, quarryVertexId)).toBeGreaterThan(
       evalTargetVertex(state, 0, forestOnlyVertexId)
     );
+  });
+});
+
+describe('networkStrongholdCount', () => {
+  it('街道が無ければ0', () => {
+    expect(networkStrongholdCount(makeState(), 0)).toBe(0);
+  });
+
+  it('1本の街道で繋いだ2拠点は2と数える', () => {
+    const state = makeState();
+    const v0 = state.board.vertices[0];
+    const nid = v0.neighborVertexIds[0];
+    const edge = state.board.edges.find((e) =>
+      (e.vertexIds[0] === v0.id && e.vertexIds[1] === nid) ||
+      (e.vertexIds[1] === v0.id && e.vertexIds[0] === nid))!;
+    state.buildings = [
+      { vertexId: v0.id, owner: 0, type: 'fort' },
+      { vertexId: nid,   owner: 0, type: 'fort' },
+    ];
+    state.roads = [{ edgeId: edge.id, owner: 0 }];
+    expect(networkStrongholdCount(state, 0)).toBe(2);
+  });
+
+  it('extraVid で先読みの+1が数えられる', () => {
+    const state = makeState();
+    const v0 = state.board.vertices[0];
+    const nid = v0.neighborVertexIds[0];
+    const edge = state.board.edges.find((e) =>
+      (e.vertexIds[0] === v0.id && e.vertexIds[1] === nid) ||
+      (e.vertexIds[1] === v0.id && e.vertexIds[0] === nid))!;
+    state.buildings = [{ vertexId: v0.id, owner: 0, type: 'fort' }];
+    state.roads = [{ edgeId: edge.id, owner: 0 }];
+    expect(networkStrongholdCount(state, 0)).toBe(1);
+    expect(networkStrongholdCount(state, 0, nid)).toBe(2);
+  });
+});
+
+describe('networkGainBonus', () => {
+  it('街道網が成立済みなら0を返す', () => {
+    const state = makeState();
+    // toyotomi: 敷居3。3拠点を街道で繋ぐ。
+    const v0 = state.board.vertices[0];
+    const n1 = v0.neighborVertexIds[0];
+    const v1 = state.board.vertices[n1];
+    const n2 = v1.neighborVertexIds.find((id) => id !== v0.id)!;
+    const e01 = state.board.edges.find((e) =>
+      (e.vertexIds[0] === v0.id && e.vertexIds[1] === n1) ||
+      (e.vertexIds[1] === v0.id && e.vertexIds[0] === n1))!;
+    const e12 = state.board.edges.find((e) =>
+      (e.vertexIds[0] === n1 && e.vertexIds[1] === n2) ||
+      (e.vertexIds[1] === n1 && e.vertexIds[0] === n2))!;
+    state.buildings = [
+      { vertexId: v0.id, owner: 0, type: 'fort' },
+      { vertexId: n1,    owner: 0, type: 'fort' },
+      { vertexId: n2,    owner: 0, type: 'fort' },
+    ];
+    state.roads = [
+      { edgeId: e01.id, owner: 0 },
+      { edgeId: e12.id, owner: 0 },
+    ];
+    // 既に成立（3拠点）→ 0
+    expect(networkGainBonus(state, 0, n2)).toBe(0);
+  });
+
+  it('徳川(敷居2)で2拠点目を繋ぐとCOMPLETEボーナスを返す', () => {
+    const state = makeState();
+    state.players[0].daimyo = 'tokugawa';
+    const v0 = state.board.vertices[0];
+    const nid = v0.neighborVertexIds[0];
+    const edge = state.board.edges.find((e) =>
+      (e.vertexIds[0] === v0.id && e.vertexIds[1] === nid) ||
+      (e.vertexIds[1] === v0.id && e.vertexIds[0] === nid))!;
+    state.buildings = [{ vertexId: v0.id, owner: 0, type: 'fort' }];
+    state.roads = [{ edgeId: edge.id, owner: 0 }];
+    // cur=1, after=2 >= threshold(2) → COMPLETE
+    const bonus = networkGainBonus(state, 0, nid);
+    expect(bonus).toBeGreaterThan(0);
   });
 });
 

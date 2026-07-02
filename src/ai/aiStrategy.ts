@@ -1,3 +1,5 @@
+import { networkMinFor } from '../game/daimyo';
+import { networkStrongholdCount } from '../game/scoring';
 import { isValidSetupFort, terrainResource } from '../game/setup';
 import { GameState, PlayerId, ResourceType } from '../game/types';
 
@@ -6,6 +8,12 @@ const ALL_RESOURCES: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron
 const NEW_RESOURCE_BONUS = 3;
 const PORT_BONUS = 2;
 const DISTANCE_PENALTY = 1.5;
+
+// 街道網(+2点)への誘導。完成手は大きく、途中の1歩は控えめに。
+// 目安：COMPLETE は PORT_BONUS の2〜3倍（網成立=威信+2で港より価値が高い）、STEP はその1/4程度。
+// 値は sim で微調整する。
+const NETWORK_COMPLETE_BONUS = 10;
+const NETWORK_STEP_BONUS = 3;
 
 function tokenWeight(token: number | null): number {
   if (token === null) return 0;
@@ -131,6 +139,18 @@ export function chooseRoadTarget(state: GameState, playerId: PlayerId): RoadTarg
   if (targets.length === 0) return null;
   targets.sort((a, b) => b.value - a.value);
   return targets[0];
+}
+
+// vid に自分の拠点を1つ足すと仮定したときの、街道網の敷居への前進に対する加点。
+// 既に成立済み／vid が網に寄与しない場合は 0。敷居は player 別（徳川2/他3）。
+export function networkGainBonus(state: GameState, playerId: PlayerId, vid: number): number {
+  const player = state.players.find((p) => p.id === playerId)!;
+  const threshold = networkMinFor(player);
+  const cur = networkStrongholdCount(state, playerId);
+  if (cur >= threshold) return 0;                       // 既に成立
+  const after = networkStrongholdCount(state, playerId, vid);
+  if (after <= cur) return 0;                           // この砦は網に寄与しない
+  return after >= threshold ? NETWORK_COMPLETE_BONUS : NETWORK_STEP_BONUS;
 }
 
 export function deficitFor(

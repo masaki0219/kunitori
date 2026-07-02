@@ -9,7 +9,7 @@ import { effectiveTradeRate } from '../game/trade';
 import { GameState, Player, PlayerId, ResourceType, Resources } from '../game/types';
 import { useGameStore } from '../store/gameStore';
 import { useNetStore } from '../net/netStore';
-import { chooseRoadTarget, evalTargetVertex, scoreVertex } from './aiStrategy';
+import { chooseRoadTarget, evalTargetVertex, networkGainBonus, scoreVertex } from './aiStrategy';
 
 const ALL_RESOURCES: ResourceType[] = ['timber', 'stone', 'rice', 'horse', 'iron'];
 
@@ -141,7 +141,7 @@ async function tryBuild(state: GameState): Promise<boolean> {
     let best = buildableVertices[0];
     let bestScore = -Infinity;
     for (const v of buildableVertices) {
-      const s = scoreVertex(state, v);
+      const s = scoreVertex(state, v) + networkGainBonus(state, playerId, v);
       if (s > bestScore) { bestScore = s; best = v; }
     }
     store.buildFort(best);
